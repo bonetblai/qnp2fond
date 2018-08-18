@@ -1,1 +1,2 @@
-# qnps
+# Qualitative Numeric Planning
+
