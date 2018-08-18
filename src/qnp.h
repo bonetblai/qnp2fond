@@ -13,6 +13,8 @@ inline std::string PDDL_name(const std::string &name) {
         copy.replace(n, 1, "_");
     for( size_t n = copy.find(')'); n != std::string::npos; n = copy.find(')') )
         copy.replace(n, 1, "");
+    for( size_t n = copy.find(','); n != std::string::npos; n = copy.find(',') )
+        copy.replace(n, 1, "");
     //std::cout << "[" << copy << "]" << std::endl;
     return copy;
 }
@@ -356,6 +358,7 @@ class QNP {
     }
     void PDDL_dump(std::ostream &os) const {
         os << "(define (domain " << PDDL_name(name_) << ")" << std::endl
+           << "    (:requirements :non-deterministic)" << std::endl
            << "    (:types counter)" << std::endl
            << "    (:constants";
 
