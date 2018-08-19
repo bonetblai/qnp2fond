@@ -381,7 +381,7 @@ class QNP {
             if( features_[i]->numeric() )
                 os << " " << features_[i]->PDDL_name();
         }
-        os << ")" << std::endl;
+        os << " - counter)" << std::endl;
 
         os << "    (:predicates" << std::endl
            << "        (zero ?c - counter)" << std::endl
