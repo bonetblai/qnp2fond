@@ -379,7 +379,7 @@ class QNP {
 
         for( size_t i = 0; i < features_.size(); ++i ) {
             if( features_[i]->numeric() )
-                os << " " << features_[i]->PDDL_name();
+                os << " " << features_[i]->name();
         }
         os << " - counter)" << std::endl;
 
