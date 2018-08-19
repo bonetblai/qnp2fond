@@ -19,26 +19,40 @@ inline std::string PDDL_name(const std::string &name) {
     return copy;
 }
 
-inline std::string PDDL_feature(const std::string &name) {
-    return std::string("(") + PDDL_name(name) + ")";
-}
-
 inline std::string PDDL_zero(const std::string &name, bool neg = false) {
     std::string zero;
     if( neg ) zero += std::string("(not ");
-    zero += std::string("(zero ") + PDDL_feature(name) + ")";
+    zero += std::string("(zero ") + PDDL_name(name) + ")";
     if( neg ) zero += std::string(")");
     return zero;
+}
+
+inline std::string PDDL_q(const std::string &name, bool neg = false) {
+    std::string q;
+    if( neg ) q += std::string("(not ");
+    q += std::string("(q ") + PDDL_name(name) + ")";
+    if( neg ) q += std::string(")");
+    return q;
 }
 
 class Feature {
   protected:
     const std::string name_;
     bool numeric_;
+    bool sanitized_;
 
   public:
-    Feature(const std::string &name, bool numeric) : name_(name), numeric_(numeric) { }
+    Feature(const std::string &name, bool numeric, bool sanitized = false)
+      : name_(name), numeric_(numeric), sanitized_(sanitized) {
+    }
     const std::string& name() const { return name_; }
+    const std::string PDDL_name(bool neg = false) const {
+        std::string name;
+        if( neg ) name += "(not ";
+        name += sanitized_ ? name_ : std::string("(") + ::PDDL_name(name_) + ")";
+        if( neg ) name += ")";
+        return name;
+    }
     bool numeric() const { return numeric_; }
     static Feature* read(std::istream &is) {
         std::string name;
@@ -130,7 +144,7 @@ class Action {
     }
     void PDDL_dump(std::ostream &os) const {
         os << "    (:action " << PDDL_name(name_) << std::endl
-           << "        (:precondition (and";
+           << "        :precondition (and";
 
         for( size_t i = 0; i < preconditions_.size(); ++i ) {
             const Feature *feature = preconditions_[i].first;
@@ -140,14 +154,14 @@ class Action {
             } else if( feature->numeric() && value ) {
                 os << " " << PDDL_zero(feature->name(), true);
             } else if( !feature->numeric() && !value ) {
-                os << " (not " << PDDL_feature(feature->name()) << ")";
+                os << " " << feature->PDDL_name(true);
             } else {
-                os << " " << PDDL_feature(feature->name());
+                os << " " << feature->PDDL_name();
             }
         }
-        os << "))" << std::endl;
+        os << ")" << std::endl;
 
-        os << "        (:effect (and";
+        os << "        :effect (and";
         for( size_t i = 0; i < effects_.size(); ++i ) {
             const Feature *feature = effects_[i].first;
             bool value = effects_[i].second;
@@ -156,12 +170,12 @@ class Action {
             } else if( feature->numeric() && value ) {
                 os << " " << PDDL_zero(feature->name(), true);
             } else if( !feature->numeric() && !value ) {
-                os << " (not " << PDDL_feature(feature->name()) << ")";
+                os << " " << feature->PDDL_name(true);
             } else {
-                os << " " << PDDL_feature(feature->name());
+                os << " " << feature->PDDL_name();
             }
         }
-        os << "))" << std::endl << "    )" << std::endl;
+        os << ")" << std::endl << "    )" << std::endl;
     }
 };
 
@@ -230,7 +244,8 @@ class QNP {
         for( size_t i = 0; i < boolean_features.size(); ++i )
             fond->add_feature(new Feature(boolean_features[i]->name(), false));
         for( size_t i = 0; i < numeric_features.size(); ++i ) {
-            const Feature *feature = new Feature(std::string("Q(") + numeric_features[i]->name() + ")", false);
+            //const Feature *feature = new Feature(std::string("Q(") + numeric_features[i]->name() + ")", false);
+            const Feature *feature = new Feature(PDDL_q(numeric_features[i]->name()), false, true);
             q_features.push_back(feature);
             fond->add_feature(feature);
         }
@@ -364,16 +379,17 @@ class QNP {
 
         for( size_t i = 0; i < features_.size(); ++i ) {
             if( features_[i]->numeric() )
-                os << " " << PDDL_name(features_[i]->name());
+                os << " " << features_[i]->PDDL_name();
         }
         os << ")" << std::endl;
 
         os << "    (:predicates" << std::endl
-           << "        (zero ?c - counter)" << std::endl;
+           << "        (zero ?c - counter)" << std::endl
+           << "        (q ?c - counter)" << std::endl;
 
         for( size_t i = 0; i < features_.size(); ++i ) {
-            if( !features_[i]->numeric() )
-                os << "        " << PDDL_feature(features_[i]->name()) << std::endl;
+            if( !features_[i]->numeric() && (features_[i]->PDDL_name().substr(0, 3) != "(q ") )
+                os << "        " << features_[i]->PDDL_name() << std::endl;
         }
         os << "    )" << std::endl;
 
