@@ -1,0 +1,9 @@
+grid
+2 delta(X) 1 delta(Y) 1
+2
+Move-in-row
+1 delta(X) 1
+1 delta(X) 0
+Move-in-column
+1 delta(Y) 1
+1 delta(Y) 0
