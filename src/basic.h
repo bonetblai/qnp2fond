@@ -27,14 +27,6 @@ inline std::string PDDL_zero(const std::string &name, bool neg = false) {
     return zero;
 }
 
-inline std::string PDDL_q(const std::string &name, bool neg = false) {
-    std::string q;
-    if( neg ) q += std::string("(not ");
-    q += std::string("(q ") + PDDL_name(name) + ")";
-    if( neg ) q += std::string(")");
-    return q;
-}
-
 };
 
 #endif
