@@ -1,50 +1,47 @@
 (define (domain FOND_blocks-clear-x_3_0)
     (:requirements :non-deterministic)
-    (:types counter)
-    (:constants nabove_A nother_A - counter)
+    (:types counter bit)
+    (:constants nabove_A nother_A - counter b0 b1 b2 b3 - bit)
     (:predicates
         (zero ?c - counter)
         (q ?c - counter)
+        (bitvalue ?b - bit)
         (hold_A)
         (hold-other_A)
         (some-below_A)
-        (bit_0)
-        (bit_1)
-        (bit_2)
-        (bit_3)
     )
 
-    (:action Set_nabove_A_0
-        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bit_0))
-        :effect (and (q nabove_A) (not (bit_0)))
+    (:action Set_nabove_A_b0
+        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bitvalue b0))
+        :effect (and (q nabove_A) (not (bitvalue b0)))
     )
-    (:action Set_nabove_A_1
-        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bit_1) (not (bit_0)))
-        :effect (and (q nabove_A) (not (bit_1)) (bit_0))
+    (:action Set_nabove_A_b1
+        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bitvalue b1) (not (bitvalue b0)))
+        :effect (and (q nabove_A) (not (bitvalue b1)) (bitvalue b0))
     )
-    (:action Set_nabove_A_2
-        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bit_2) (not (bit_1)) (not (bit_0)))
-        :effect (and (q nabove_A) (not (bit_2)) (bit_1) (bit_0))
+    (:action Set_nabove_A_b2
+        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bitvalue b2) (not (bitvalue b1)) (not (bitvalue b0)))
+        :effect (and (q nabove_A) (not (bitvalue b2)) (bitvalue b1) (bitvalue b0))
     )
-    (:action Set_nabove_A_3
-        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bit_3) (not (bit_2)) (not (bit_1)) (not (bit_0)))
-        :effect (and (q nabove_A) (not (bit_3)) (bit_2) (bit_1) (bit_0))
+    (:action Set_nabove_A_b3
+        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bitvalue b3) (not (bitvalue b2)) (not (bitvalue b1)) (not (bitvalue b0)))
+        :effect (and (q nabove_A) (not (bitvalue b3)) (bitvalue b2) (bitvalue b1) (bitvalue b0))
     )
-    (:action Set_nother_A_0
-        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bit_0))
-        :effect (and (q nother_A) (not (bit_0)))
+    (:action Set_nother_A_b0
+        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bitvalue b0))
+        :effect (and (q nother_A) (not (bitvalue b0)))
     )
-    (:action Set_nother_A_1
-        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bit_1) (not (bit_0)))
-        :effect (and (q nother_A) (not (bit_1)) (bit_0))
+    (:action Set_nother_A_b1
+        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bitvalue b1) (not (bitvalue b0)))
+        :effect (and (q nother_A) (not (bitvalue b1)) (bitvalue b0))
     )
-    (:action Set_nother_A_2
-        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bit_2) (not (bit_1)) (not (bit_0)))
-        :effect (and (q nother_A) (not (bit_2)) (bit_1) (bit_0))
+    (:action Set_nother_A_b2
+        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bitvalue b2) (not (bitvalue b1)) (not (bitvalue b0)))
+        :effect (and (q nother_A) (not (bitvalue b2)) (bitvalue b1) (bitvalue b0))
     )
-    (:action Set_nother_A_3
-        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bit_3) (not (bit_2)) (not (bit_1)) (not (bit_0)))
-        :effect (and (q nother_A) (not (bit_3)) (bit_2) (bit_1) (bit_0))
+    (:action Set_nother_A_b3
+        :precondition (and (not (q nabove_A)) (not (q nother_A)) (bitvalue b3) (not (bitvalue b2)) (not (bitvalue b1)) (not (bitvalue b0)))
+        :effect (and (q nother_A) (not (bitvalue b3)) (bitvalue b2) (bitvalue b1) (bitvalue b0))
     )
     (:action Unset_nabove_A
         :precondition (and (q nabove_A))

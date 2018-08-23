@@ -1,47 +1,44 @@
 (define (domain FOND_grid_3_0)
     (:requirements :non-deterministic)
-    (:types counter)
-    (:constants delta_X delta_Y - counter)
+    (:types counter bit)
+    (:constants delta_X delta_Y - counter b0 b1 b2 b3 - bit)
     (:predicates
         (zero ?c - counter)
         (q ?c - counter)
-        (bit_0)
-        (bit_1)
-        (bit_2)
-        (bit_3)
+        (bitvalue ?b - bit)
     )
 
-    (:action Set_delta_X_0
-        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bit_0))
-        :effect (and (q delta_X) (not (bit_0)))
+    (:action Set_delta_X_b0
+        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bitvalue b0))
+        :effect (and (q delta_X) (not (bitvalue b0)))
     )
-    (:action Set_delta_X_1
-        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bit_1) (not (bit_0)))
-        :effect (and (q delta_X) (not (bit_1)) (bit_0))
+    (:action Set_delta_X_b1
+        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bitvalue b1) (not (bitvalue b0)))
+        :effect (and (q delta_X) (not (bitvalue b1)) (bitvalue b0))
     )
-    (:action Set_delta_X_2
-        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bit_2) (not (bit_1)) (not (bit_0)))
-        :effect (and (q delta_X) (not (bit_2)) (bit_1) (bit_0))
+    (:action Set_delta_X_b2
+        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bitvalue b2) (not (bitvalue b1)) (not (bitvalue b0)))
+        :effect (and (q delta_X) (not (bitvalue b2)) (bitvalue b1) (bitvalue b0))
     )
-    (:action Set_delta_X_3
-        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bit_3) (not (bit_2)) (not (bit_1)) (not (bit_0)))
-        :effect (and (q delta_X) (not (bit_3)) (bit_2) (bit_1) (bit_0))
+    (:action Set_delta_X_b3
+        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bitvalue b3) (not (bitvalue b2)) (not (bitvalue b1)) (not (bitvalue b0)))
+        :effect (and (q delta_X) (not (bitvalue b3)) (bitvalue b2) (bitvalue b1) (bitvalue b0))
     )
-    (:action Set_delta_Y_0
-        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bit_0))
-        :effect (and (q delta_Y) (not (bit_0)))
+    (:action Set_delta_Y_b0
+        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bitvalue b0))
+        :effect (and (q delta_Y) (not (bitvalue b0)))
     )
-    (:action Set_delta_Y_1
-        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bit_1) (not (bit_0)))
-        :effect (and (q delta_Y) (not (bit_1)) (bit_0))
+    (:action Set_delta_Y_b1
+        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bitvalue b1) (not (bitvalue b0)))
+        :effect (and (q delta_Y) (not (bitvalue b1)) (bitvalue b0))
     )
-    (:action Set_delta_Y_2
-        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bit_2) (not (bit_1)) (not (bit_0)))
-        :effect (and (q delta_Y) (not (bit_2)) (bit_1) (bit_0))
+    (:action Set_delta_Y_b2
+        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bitvalue b2) (not (bitvalue b1)) (not (bitvalue b0)))
+        :effect (and (q delta_Y) (not (bitvalue b2)) (bitvalue b1) (bitvalue b0))
     )
-    (:action Set_delta_Y_3
-        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bit_3) (not (bit_2)) (not (bit_1)) (not (bit_0)))
-        :effect (and (q delta_Y) (not (bit_3)) (bit_2) (bit_1) (bit_0))
+    (:action Set_delta_Y_b3
+        :precondition (and (not (q delta_X)) (not (q delta_Y)) (bitvalue b3) (not (bitvalue b2)) (not (bitvalue b1)) (not (bitvalue b0)))
+        :effect (and (q delta_Y) (not (bitvalue b3)) (bitvalue b2) (bitvalue b1) (bitvalue b0))
     )
     (:action Unset_delta_X
         :precondition (and (q delta_X))
