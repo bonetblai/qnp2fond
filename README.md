@@ -1,5 +1,15 @@
 # Translator from QNPs to FOND: Qualitative Numeric Planning to Fully Observable Non-Deterministic Planning
 
+The translator is invoked using
+
+```
+qnp2fond <qnp-file> <counter-capacity> <loop-nesting>
+```
+
+where the first argument is the name of a .qnp file (see below), 
+and the two additional arguments are non-negative integers,
+typicall small ones such as 0, 1 or 2.
+
 
 ## QNP Format
 
