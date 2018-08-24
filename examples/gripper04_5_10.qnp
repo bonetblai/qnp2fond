@@ -1,0 +1,33 @@
+gripper04_5_10_model.cnf
+5 nballs(0) 1 nballs(1) 1 holding(0) 0 holding(1) 0 room(0) 0
+10
+decoded-8
+1 room(0) 0
+1 room(0) 1
+decoded-9
+1 room(0) 1
+1 room(0) 0
+decoded-4
+2 holding(0) 1 room(0) 0
+3 nballs(1) 1 holding(0) 0 room(0) 0
+decoded-1
+2 holding(0) 1 room(0) 1
+2 nballs(0) 1 holding(0) 0
+decoded-3
+3 nballs(0) 1 holding(0) 0 room(0) 1
+2 nballs(0) 0 holding(0) 1
+decoded-5
+3 nballs(1) 1 holding(0) 0 room(0) 0
+3 nballs(1) 0 holding(0) 1 room(0) 0
+decoded-7
+2 holding(1) 1 room(0) 0
+3 nballs(1) 1 holding(1) 0 room(0) 0
+decoded-0
+2 holding(1) 1 room(0) 1
+2 nballs(0) 1 holding(1) 0
+decoded-2
+3 nballs(0) 1 holding(1) 0 room(0) 1
+2 nballs(0) 0 holding(1) 1
+decoded-6
+3 nballs(1) 1 holding(1) 0 room(0) 0
+3 nballs(1) 0 holding(1) 1 room(0) 0
