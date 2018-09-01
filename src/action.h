@@ -44,6 +44,7 @@ class Action {
         std::string name;
         is >> name;
         Action *action = new Action(name);
+
         int num_preconditions;
         is >> num_preconditions;
         for( int i = 0; i < num_preconditions; ++i ) {
@@ -56,6 +57,7 @@ class Action {
             else
                 action->add_precondition(it->second, value);
         }
+
         int num_effects;
         is >> num_effects;
         for( int i = 0; i < num_effects; ++i ) {

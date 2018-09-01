@@ -17,6 +17,8 @@ class Problem {
     const int num_bits_per_counter_;
     const int loop_nesting_;
     std::vector<const Feature*> features_;
+    std::vector<std::pair<const Feature*, bool> > init_;
+    std::vector<std::pair<const Feature*, bool> > goal_;
     std::vector<const Action*> actions_;
     std::map<std::string, const Feature*> feature_map_;
 
@@ -82,6 +84,12 @@ class Problem {
         features_.push_back(feature);
         feature_map_.insert(std::make_pair(feature->name(), features_.back()));
     }
+    void add_init(const Feature *feature, bool value) {
+        init_.push_back(std::make_pair(feature, value));
+    }
+    void add_goal(const Feature *feature, bool value) {
+        goal_.push_back(std::make_pair(feature, value));
+    }
     void add_action(const Action *action) {
         assert(action != nullptr);
         actions_.push_back(action);
@@ -93,18 +101,47 @@ class Problem {
         std::string name;
         is >> name;
         Problem *qnp = new Problem(name);
+
         int num_features;
         is >> num_features;
         for( int i = 0; i < num_features; ++i ) {
             Feature *feature = Feature::read(is);
             qnp->add_feature(feature);
         }
+
+        int num_init;
+        is >> num_init;
+        for( int i = 0; i < num_init; ++i ) {
+            std::string name;
+            bool value;
+            is >> name >> value;
+            std::map<std::string, const Feature*>::const_iterator it = qnp->feature_map().find(name);
+            if( it == qnp->feature_map().end() )
+                std::cout << "error: inexistent feature '" << name << "'" << std::endl;
+            else
+                qnp->add_init(it->second, value);
+        }
+
+        int num_goal;
+        is >> num_goal;
+        for( int i = 0; i < num_goal; ++i ) {
+            std::string name;
+            bool value;
+            is >> name >> value;
+            std::map<std::string, const Feature*>::const_iterator it = qnp->feature_map().find(name);
+            if( it == qnp->feature_map().end() )
+                std::cout << "error: inexistent feature '" << name << "'" << std::endl;
+            else
+                qnp->add_goal(it->second, value);
+        }
+
         int num_actions;
         is >> num_actions;
         for( int i = 0; i < num_actions; ++i ) {
             Action *action = Action::read(is, qnp->feature_map());
             qnp->add_action(action);
         }
+
         return qnp;
     }
 
@@ -118,7 +155,7 @@ class Problem {
             os << *actions_[i];
         }
     }
-    void PDDL_dump(std::ostream &os) const {
+    void PDDL_dump_domain(std::ostream &os) const {
         os << "(define (domain " << PDDL_name(name_) << ")" << std::endl
            << "    (:requirements :non-deterministic)" << std::endl
            << "    (:types counter";
@@ -166,6 +203,53 @@ class Problem {
         for( size_t i = 0; i < actions_.size(); ++i )
             actions_[i]->PDDL_dump(os);
         os << ")" << std::endl << std::endl;
+    }
+    void PDDL_dump_problem(std::ostream &os) const {
+        os << "(define (problem " << PDDL_name(name_) << "_p)" << std::endl
+           << "    (:domain " << PDDL_name(name_) << ")" << std::endl;
+
+        // initial situation
+        os << "    (:init";
+        for( size_t i = 0; i < init_.size(); ++i ) {
+            const Feature *feature = init_[i].first;
+            int value = init_[i].second;
+            if( feature->numeric() && (value == 0) ) {
+                os << " (zero " << PDDL_name(feature->name()) << ")";
+            } else if( !feature->numeric() && (value > 0) ) {
+                os << " " << feature->PDDL_name();
+            }
+        }
+        if( loop_nesting_ == 0 ) {
+            for( int b = 0; b <= num_bits_per_counter_; ++b )
+                os << " (bitvalue b" << b << ")";
+        } else {
+            os << " (stack-depth d0)";
+            for( int b = 0; b <= num_bits_per_counter_; ++b )
+                os << " (bitvalue d0 b" << b << ")";
+        }
+        os << ")" << std::endl;
+
+        // goal situation
+        os << "    (:goal";
+        if( (goal_.size() > 1) || (loop_nesting_ > 0) ) os << " (and";
+        for( size_t i = 0; i < goal_.size(); ++i ) {
+            const Feature *feature = goal_[i].first;
+            int value = goal_[i].second;
+            if( feature->numeric() && (value == 0) ) {
+                os << " (zero " << PDDL_name(feature->name()) << ")";
+            } else if( feature->numeric() && (value > 0) ) {
+                os << " (not (zero " << PDDL_name(feature->name()) << "))";
+            } else if( !feature->numeric() && (value == 0) ) {
+                os << " (not " << feature->PDDL_name() << ")";
+            } else {
+                os << " " << feature->PDDL_name();
+            }
+        }
+        if( loop_nesting_ > 0 ) os << " (stack-depth d0)";
+        if( (goal_.size() > 1) || (loop_nesting_ > 0) ) os << ")";
+        os << ")" << std::endl;
+       
+        os  << ")" << std::endl << std::endl;
     }
 };
 
@@ -421,6 +505,21 @@ inline Problem* Problem::create_fond(int num_bits_per_counter, int loop_nesting)
                 //fond->add_feature(feature);
             }
         }
+    }
+
+    // copy initial and goal situations
+    for( size_t i = 0; i < init_.size(); ++i ) {
+        const Feature *feature = fond->feature(init_[i].first->name());
+        int value = init_[i].second;
+        assert(feature != nullptr);
+        fond->add_init(feature, value);
+    }
+
+    for( size_t i = 0; i < goal_.size(); ++i ) {
+        const Feature *feature = fond->feature(goal_[i].first->name());
+        int value = goal_[i].second;
+        assert(feature != nullptr);
+        fond->add_goal(feature, value);
     }
 
     return fond;
