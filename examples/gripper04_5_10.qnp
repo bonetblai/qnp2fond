@@ -1,5 +1,7 @@
 gripper04_5_10_model.cnf
 5 nballs(0) 1 nballs(1) 1 holding(0) 0 holding(1) 0 room(0) 0
+5 nballs(0) 0 nballs(1) 1 holding(0) 0 holding(1) 0 room(0) 1
+4 nballs(1) 0 holding(0) 0 holding(1) 0 room(0) 1
 10
 decoded-8
 1 room(0) 0
