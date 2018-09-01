@@ -31,7 +31,20 @@ indicating that the QNP consists of 5 features: two numerical
 features ```nabove(A)``` and ```nother(A)```, and three boolean
 features ```hold(A)```, ```hold-other(A)```, and ```some-below(A)```.
 
-The rest of the file contains the description of the actions. 
+The following two lines contain the description of the initial and
+goal situations respectively.
+
+The initial and goal situations are described in a similar way.
+A first integer tells the number of conditions. Each condition
+corresponds to a pair of items: the first is the name of the
+feature and the second denotes the condition on the feature:
+0 for the feature being equal to zero or false for numerical
+or boolean features respectively, and 1 for the feature being
+bigger than zero or true for numerical or boolean features
+respectively.
+
+The rest of the file contains the description of the actions.
+
 A first integer indicates the number of actions in the file.
 Each action is described with three lines: the first is the
 name of the action, the second gives the preconditions of the
