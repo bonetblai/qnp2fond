@@ -1,6 +1,7 @@
 #ifndef PROBLEM_H
 #define PROBLEM_H
 
+#include <cassert>
 #include <iostream>
 #include <string>
 #include <map>
