@@ -394,7 +394,7 @@ inline void Problem::translate_qnp_action(Problem *fond, const Action *action) c
                 }
                 fond->add_action(a);
             } else {
-                for( int d = 1; d < fond->loop_nesting_; ++d ) {
+                for( int d = 1; d <= fond->loop_nesting_; ++d ) {
                     std::string name = action->name();
                     if( features_decreased.size() > 1 )
                         name += std::string("_") + std::to_string(i);
