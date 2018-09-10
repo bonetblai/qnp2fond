@@ -285,8 +285,8 @@ inline void Problem::create_unset_actions(Problem *fond) const {
 
 inline void Problem::create_push_actions(Problem *fond) const {
 #if 0
-    for( size_t i = 0; i < numeric_features_.size(); ++i ) {
-        for( int d = 0; d < fond->loop_nesting_; ++d ) {
+    for( int d = 0; d < fond->loop_nesting_; ++d ) {
+        for( size_t i = 0; i < numeric_features_.size(); ++i ) {
             for( int b = 0; b <= fond->num_bits_per_counter_; ++b ) {
                 std::string name = std::string("Push(") + numeric_features_[i]->name() + ",d" + std::to_string(d) + ",b" + std::to_string(b) + ")";
                 Action *a = new Action(name);
@@ -313,14 +313,14 @@ inline void Problem::create_push_actions(Problem *fond) const {
             }
         }
     }
-#endif
-
+#else
     for( int d = 0; d < fond->loop_nesting_; ++d ) {
         for( int b = 0; b <= fond->num_bits_per_counter_; ++b ) {
-            Action *a = new PushAction(d, b);
+            Action *a = new PushAction(d, b, fond->num_bits_per_counter_);
             fond->add_action(a);
         }
     }
+#endif
 }
 
 inline void Problem::create_pop_actions(Problem *fond) const {
@@ -344,12 +344,12 @@ inline void Problem::create_pop_actions(Problem *fond) const {
             fond->add_action(a);
         }
     }
-#endif
-
+#else
     for( int d = 1; d <= fond->loop_nesting_; ++d ) {
         Action *a = new PopAction(d);
         fond->add_action(a);
     }
+#endif
 }
 
 inline Action* Problem::clone_qnp_action(const Problem *fond, const Action *action, const std::string &name) const {

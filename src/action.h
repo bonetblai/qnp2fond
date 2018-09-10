@@ -126,9 +126,11 @@ class PushAction : public Action {
   protected:
     const int depth_;
     const int bit_;
+    const int num_bits_in_counter_;
 
   public:
-    PushAction(int depth, int bit) : Action("Push"), depth_(depth), bit_(bit) { }
+    PushAction(int depth, int bit, int num_bits_in_counter)
+      : Action("Push"), depth_(depth), bit_(bit), num_bits_in_counter_(num_bits_in_counter) { }
     virtual ~PushAction() { }
     virtual void dump(std::ostream &os) const {
         assert(0);
@@ -151,6 +153,8 @@ class PushAction : public Action {
         os << "        :effect (and (not (stack-depth " << d1 << ")) (stack-depth " << d2 << ") (in-stack ?c) (stack-idx ?c " << d2 << ") (not (bitvalue " << d1 << " " << b << "))";
         for( int i = bit_ - 1; i >= 0; --i )
             os << " (bitvalue " << d1 << " b" << std::to_string(i) << ")";
+        for( int i = num_bits_in_counter_; i >= 0; --i )
+            os << " (bitvalue " << d2 << " b" << std::to_string(i) << ")";
         os << ")" << std::endl;
 
         os << "    )" << std::endl;
@@ -173,7 +177,7 @@ class PopAction : public Action {
         std::string d2(std::string("d") + std::to_string(depth_ - 1));
         os << "    (:action " << (std::string("POP_") + d1) << std::endl
            << "        :parameters (?c - counter)" << std::endl
-           << "        :precondition (and (stack-depth " << d1 << ") (not (in-stack ?c)) (stack-idx ?c " << d1 << "))" << std::endl
+           << "        :precondition (and (stack-depth " << d1 << ") (in-stack ?c) (stack-idx ?c " << d1 << "))" << std::endl
            << "        :effect (and (not (stack-depth " << d1 << ")) (stack-depth " << d2 << ") (not (in-stack ?c)) (not (stack-idx ?c " << d1 << ")))" << std::endl
            << "    )" << std::endl;
     }
