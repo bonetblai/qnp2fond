@@ -284,15 +284,16 @@ inline void Problem::create_unset_actions(Problem *fond) const {
 }
 
 inline void Problem::create_push_actions(Problem *fond) const {
-    for( int d = 0; d < fond->loop_nesting_; ++d ) {
-        for( size_t i = 0; i < numeric_features_.size(); ++i ) {
+#if 0
+    for( size_t i = 0; i < numeric_features_.size(); ++i ) {
+        for( int d = 0; d < fond->loop_nesting_; ++d ) {
             for( int b = 0; b <= fond->num_bits_per_counter_; ++b ) {
                 std::string name = std::string("Push(") + numeric_features_[i]->name() + ",d" + std::to_string(d) + ",b" + std::to_string(b) + ")";
                 Action *a = new Action(name);
 
                 // preconditions: (and (di) (not (in X)) (c i t) (not (c i t-1)) ... (not (c i 0)))
                 a->add_precondition(fond->stack_depth_features_[d], true);
-                if( i > 0 ) a->add_precondition(fond->stack_in_features_[i], false);
+                if( d > 0 ) a->add_precondition(fond->stack_in_features_[i], false);
                 a->add_precondition(fond->bitvalue_features_[d * (1 + fond->num_bits_per_counter_) + b], true);
                 for( int t = b - 1; t >= 0; --t )
                     a->add_precondition(fond->bitvalue_features_[d * (1 + fond->num_bits_per_counter_) + t], false);
@@ -312,9 +313,18 @@ inline void Problem::create_push_actions(Problem *fond) const {
             }
         }
     }
+#endif
+
+    for( int d = 0; d < fond->loop_nesting_; ++d ) {
+        for( int b = 0; b <= fond->num_bits_per_counter_; ++b ) {
+            Action *a = new PushAction(d, b);
+            fond->add_action(a);
+        }
+    }
 }
 
 inline void Problem::create_pop_actions(Problem *fond) const {
+#if 0
     for( int d = 1; d <= fond->loop_nesting_; ++d ) {
         for( size_t i = 0; i < numeric_features_.size(); ++i ) {
             std::string name = std::string("Pop(") + numeric_features_[i]->name() + ",d" + std::to_string(d) + ")";
@@ -333,6 +343,12 @@ inline void Problem::create_pop_actions(Problem *fond) const {
 
             fond->add_action(a);
         }
+    }
+#endif
+
+    for( int d = 1; d <= fond->loop_nesting_; ++d ) {
+        Action *a = new PopAction(d);
+        fond->add_action(a);
     }
 }
 

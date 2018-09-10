@@ -18,6 +18,7 @@ class Action {
 
   public:
     Action(const std::string &name) : name_(name) { }
+    virtual ~Action() { }
 
     const std::string& name() const { return name_; }
     size_t num_preconditions() const {
@@ -73,7 +74,7 @@ class Action {
         return action;
     }
 
-    void dump(std::ostream &os) const {
+    virtual void dump(std::ostream &os) const {
         os << name_ << std::endl << preconditions_.size();
         for( size_t i = 0; i < preconditions_.size(); ++i ) {
             os << " " << *preconditions_[i].first << " " << preconditions_[i].second;
@@ -84,7 +85,7 @@ class Action {
         }
         os << std::endl;
     }
-    void PDDL_dump(std::ostream &os) const {
+    virtual void PDDL_dump(std::ostream &os) const {
         os << "    (:action " << PDDL_name(name_) << std::endl
            << "        :precondition (and";
 
@@ -118,6 +119,63 @@ class Action {
             }
         }
         os << ")" << std::endl << "    )" << std::endl;
+    }
+};
+
+class PushAction : public Action {
+  protected:
+    const int depth_;
+    const int bit_;
+
+  public:
+    PushAction(int depth, int bit) : Action("Push"), depth_(depth), bit_(bit) { }
+    virtual ~PushAction() { }
+    virtual void dump(std::ostream &os) const {
+        assert(0);
+    }
+    virtual void PDDL_dump(std::ostream &os) const {
+        std::string d1(std::string("d") + std::to_string(depth_));
+        std::string d2(std::string("d") + std::to_string(1 + depth_));
+        std::string b(std::string("b") + std::to_string(bit_));
+
+        os << "    (:action " << (std::string("PUSH_") + d1 + "_" + b) << std::endl
+           << "        :parameters (?c - counter)" << std::endl;
+
+        os << "        :precondition (and (stack-depth " << d1 << ")";
+        if( depth_ > 0 ) os << " (not (in-stack ?c))";
+        os << " (bitvalue " << d1 << " " << b << ")";
+        for( int i = bit_ - 1; i >= 0; --i )
+            os << " (not (bitvalue " << d1 << " b" << std::to_string(i) << "))";
+        os << ")" << std::endl;
+
+        os << "        :effect (and (not (stack-depth " << d1 << ")) (stack-depth " << d2 << ") (in-stack ?c) (stack-idx ?c " << d2 << ") (not (bitvalue " << d1 << " " << b << "))";
+        for( int i = bit_ - 1; i >= 0; --i )
+            os << " (bitvalue " << d1 << " b" << std::to_string(i) << ")";
+        os << ")" << std::endl;
+
+        os << "    )" << std::endl;
+    }
+};
+
+class PopAction : public Action {
+  protected:
+    const int depth_;
+
+  public:
+    PopAction(int depth) : Action("Pop"), depth_(depth) { }
+    virtual ~PopAction() { }
+    virtual void dump(std::ostream &os) const {
+        assert(0);
+    }
+    virtual void PDDL_dump(std::ostream &os) const {
+        assert(depth_ >= 0);
+        std::string d1(std::string("d") + std::to_string(depth_));
+        std::string d2(std::string("d") + std::to_string(depth_ - 1));
+        os << "    (:action " << (std::string("POP_") + d1) << std::endl
+           << "        :parameters (?c - counter)" << std::endl
+           << "        :precondition (and (stack-depth " << d1 << ") (not (in-stack ?c)) (stack-idx ?c " << d1 << "))" << std::endl
+           << "        :effect (and (not (stack-depth " << d1 << ")) (stack-depth " << d2 << ") (not (in-stack ?c)) (not (stack-idx ?c " << d1 << ")))" << std::endl
+           << "    )" << std::endl;
     }
 };
 
