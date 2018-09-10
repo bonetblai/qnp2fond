@@ -3,19 +3,20 @@
 The translator is invoked using
 
 ```
-qnp2fond <qnp-file> <counter-capacity> <loop-nesting>
+qnp2fond <qnp-file> <counter-capacity> <loop-nesting> <prefix>
 ```
 
 where the first argument is the name of a .qnp file (see below), 
-and the two additional arguments are non-negative integers,
-typicall small ones such as 0, 1 or 2.
+the two additional arguments are non-negative integers, typicall
+small ones such as 0, 1 or 2, and the last argument is the prefix
+for the generated files (domain and problem files).
 
 
 ## QNP Format
 
 QNP problems are stored in files with .qnp extension in QNP format.
 The file begins with a line containing the name of the QNP. The
-following line contains the features used: an initial integer
+following line contains the list of used features: an initial integer
 counts the number of features, followed by a list of pairs
 where the first component is the name of the feature and the
 second indicates whether the feature is numeric or boolean.
@@ -32,9 +33,8 @@ features ```nabove(A)``` and ```nother(A)```, and three boolean
 features ```hold(A)```, ```hold-other(A)```, and ```some-below(A)```.
 
 The following two lines contain the description of the initial and
-goal situations respectively.
+goal situations respectively. Both are described in a similar way.
 
-The initial and goal situations are described in a similar way.
 A first integer tells the number of conditions. Each condition
 corresponds to a pair of items: the first is the name of the
 feature and the second denotes the condition on the feature:
