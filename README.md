@@ -23,10 +23,10 @@ second indicates whether the feature is numeric or boolean.
 
 For example, the file ```examples/blocks04.qnp``` begins with
 
-``
+```
 blocks-clear-x
 5 nabove(A) 1 nother(A) 1 hold(A) 0 hold-other(A) 0 some-below(A) 0
-``
+```
 
 indicating that the QNP consists of 5 features: two numerical
 features ```nabove(A)``` and ```nother(A)```, and three boolean
