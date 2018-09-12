@@ -43,6 +43,21 @@ or boolean features respectively, and 1 for the feature being
 bigger than zero or true for numerical or boolean features
 respectively.
 
+The initial and goal situation in the example are
+
+```
+4 nabove(A) 1 hold(A) 0 hold-other(A) 0 some-below(A) 1
+3 nabove(A) 0 hold(A) 0 hold-other(A) 0
+```
+
+Thus, in the initial situation the numeric variables ``nabove(a)`` 
+and ``nother(A)`` have values bigger than zero and zero respectively,
+the boolean fluents ``hold(A)`` and ``hold-other(A)`` are both
+false, and the boolean fluent ``some-below(A)`` is true.
+Likewise, in the goal situation, the numeric variable ``nabove(A)``
+is zero, and the boolean fluents ``hold(A)`` and ``hold-other(A)``
+are both false.
+
 The rest of the file contains the description of the actions.
 
 A first integer indicates the number of actions in the file.
