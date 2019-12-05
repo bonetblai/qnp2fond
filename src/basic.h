@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace QNP {
+namespace Reductions {
 
 inline std::string PDDL_name(const std::string &name) {
     size_t n;

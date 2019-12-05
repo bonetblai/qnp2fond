@@ -8,39 +8,92 @@
 #include "basic.h"
 #include "feature.h"
 
-namespace QNP {
+namespace Reductions {
 
 class Action {
   protected:
     const std::string name_;
     std::vector<std::pair<const Feature*, bool> > preconditions_;
     std::vector<std::pair<const Feature*, bool> > effects_;
+    std::vector<const Feature*> increments_;
+    std::vector<const Feature*> decrements_;
 
   public:
     Action(const std::string &name) : name_(name) { }
     virtual ~Action() { }
 
-    const std::string& name() const { return name_; }
+    const std::string& name() const {
+        return name_;
+    }
+
+    // preconditions
     size_t num_preconditions() const {
         return preconditions_.size();
-    }
-    size_t num_effects() const {
-        return effects_.size();
     }
     std::pair<const Feature*, bool> precondition(int i) const {
         return preconditions_[i];
     }
+    void add_precondition(const Feature *feature, bool value) {
+        preconditions_.emplace_back(feature, value);
+    }
+
+    // effects
+    size_t num_effects() const {
+        return effects_.size();
+    }
     std::pair<const Feature*, bool> effect(int i) const {
         return effects_[i];
     }
-
-    void add_precondition(const Feature *feature, bool value) {
-        preconditions_.push_back(std::make_pair(feature, value));
-    }
     void add_effect(const Feature *feature, bool value) {
-        effects_.push_back(std::make_pair(feature, value));
+        effects_.emplace_back(feature, value);
+        if( feature->is_numeric() && value )
+            increments_.push_back(feature);
+        else if( feature->is_numeric() && !value )
+            decrements_.push_back(feature);
     }
 
+    // number of incremented / decremented variables
+    const std::vector<const Feature*>& increments() const {
+        return increments_;
+    }
+    const std::vector<const Feature*>& decrements() const {
+        return decrements_;
+    }
+
+    // translations
+    Action* direct_translation(const std::string &name, const std::map<const Feature*, const Feature*> &feature_map) const {
+        Action *clone = new Action(name);
+
+        // translate preconditions
+        for( size_t i = 0; i < num_preconditions(); ++i ) {
+            std::pair<const Feature*, bool> p = precondition(i);
+            assert(p.first != nullptr);
+            assert(feature_map.count(p.first) > 0);
+            const Feature *new_feature = feature_map.at(p.first);
+            assert(new_feature != nullptr);
+            clone->add_precondition(new_feature, p.second);
+        }
+
+        // translate effects
+        for( size_t i = 0; i < num_effects(); ++i ) {
+            std::pair<const Feature*, bool> p = effect(i);
+            assert(p.first != nullptr);
+            assert(feature_map.count(p.first) > 0);
+            const Feature *new_feature = feature_map.at(p.first);
+            assert(new_feature != nullptr);
+            clone->add_effect(new_feature, p.second);
+        }
+
+        assert(increments_.size() == clone->increments().size());
+        assert(decrements_.size() == clone->decrements().size());
+
+        return clone;
+    }
+    Action* direct_translation(const std::map<const Feature*, const Feature*> &feature_map) const {
+        return direct_translation(name(), feature_map);
+    }
+
+    // input
     static Action* read(std::istream &is, const std::map<std::string, const Feature*> &feature_map) {
         std::string name;
         is >> name;
@@ -74,6 +127,7 @@ class Action {
         return action;
     }
 
+    // output
     virtual void dump(std::ostream &os) const {
         os << name_ << std::endl << preconditions_.size();
         for( size_t i = 0; i < preconditions_.size(); ++i ) {
@@ -92,11 +146,11 @@ class Action {
         for( size_t i = 0; i < preconditions_.size(); ++i ) {
             const Feature *feature = preconditions_[i].first;
             bool value = preconditions_[i].second;
-            if( feature->numeric() && !value ) {
+            if( feature->is_numeric() && !value ) {
                 os << " " << PDDL_zero(feature->name());
-            } else if( feature->numeric() && value ) {
+            } else if( feature->is_numeric() && value ) {
                 os << " " << PDDL_zero(feature->name(), true);
-            } else if( !feature->numeric() && !value ) {
+            } else if( feature->is_boolean() && !value ) {
                 os << " " << feature->PDDL_name(true);
             } else {
                 os << " " << feature->PDDL_name();
@@ -108,11 +162,11 @@ class Action {
         for( size_t i = 0; i < effects_.size(); ++i ) {
             const Feature *feature = effects_[i].first;
             bool value = effects_[i].second;
-            if( feature->numeric() && !value ) {
+            if( feature->is_numeric() && !value ) {
                 os << " (oneof " << PDDL_zero(feature->name()) << " " << PDDL_zero(feature->name(), true) << ")";
-            } else if( feature->numeric() && value ) {
+            } else if( feature->is_numeric() && value ) {
                 os << " " << PDDL_zero(feature->name(), true);
-            } else if( !feature->numeric() && !value ) {
+            } else if( feature->is_boolean() && !value ) {
                 os << " " << feature->PDDL_name(true);
             } else {
                 os << " " << feature->PDDL_name();
@@ -122,70 +176,113 @@ class Action {
     }
 };
 
-class PushAction : public Action {
+class Push : public Action {
   protected:
     const int depth_;
     const int bit_;
     const int num_bits_in_counter_;
 
   public:
-    PushAction(int depth, int bit, int num_bits_in_counter)
-      : Action("Push"), depth_(depth), bit_(bit), num_bits_in_counter_(num_bits_in_counter) { }
-    virtual ~PushAction() { }
-    virtual void dump(std::ostream &os) const {
-        assert(0);
+    Push(int depth, int bit, int num_bits_in_counter)
+      : Action(std::string("PUSH_at_d") + std::to_string(depth) + "_b" + std::to_string(bit)),
+        depth_(depth),
+        bit_(bit),
+        num_bits_in_counter_(num_bits_in_counter) {
     }
-    virtual void PDDL_dump(std::ostream &os) const {
-        std::string d1(std::string("d") + std::to_string(depth_));
-        std::string d2(std::string("d") + std::to_string(1 + depth_));
-        std::string b(std::string("b") + std::to_string(bit_));
+    virtual ~Push() { }
 
-        os << "    (:action " << (std::string("PUSH_") + d1 + "_" + b) << std::endl
-           << "        :parameters (?c - counter)" << std::endl;
+    void dump(std::ostream &os) const override {
+        throw std::runtime_error("error: dump() not implemented for push() actions");
+    }
+    void PDDL_dump(std::ostream &os) const override {
+        std::string before(std::string("d") + std::to_string(depth_));
+        std::string after(std::string("d") + std::to_string(1 + depth_));
+        std::string bit(std::string("b") + std::to_string(bit_));
 
-        os << "        :precondition (and (stack-depth " << d1 << ")";
-        if( depth_ > 0 ) os << " (not (in-stack ?c))";
-        os << " (bitvalue " << d1 << " " << b << ")";
+        os << "    (:action " << name_ << std::endl
+           << "        :parameters (?X - variable)" << std::endl;
+
+        os << "        :precondition (and (stack-depth " << before << ")";
+        if( depth_ > 0 ) os << " (not (stack-in ?X))";
+        os << " (not (counter " << before << " " << bit << "))";
         for( int i = bit_ - 1; i >= 0; --i )
-            os << " (not (bitvalue " << d1 << " b" << std::to_string(i) << "))";
+            os << " (counter " << before << " b" << std::to_string(i) << ")";
         os << ")" << std::endl;
 
-        os << "        :effect (and (not (stack-depth " << d1 << ")) (stack-depth " << d2 << ") (in-stack ?c) (stack-idx ?c " << d2 << ") (not (bitvalue " << d1 << " " << b << "))";
+        os << "        :effect (and (not (stack-depth " << before << ")) (stack-depth " << after << ") (stack-in ?X) (stack-index ?X " << after << ") (counter " << before << " " << bit << ")";
         for( int i = bit_ - 1; i >= 0; --i )
-            os << " (bitvalue " << d1 << " b" << std::to_string(i) << ")";
-        for( int i = num_bits_in_counter_; i >= 0; --i )
-            os << " (bitvalue " << d2 << " b" << std::to_string(i) << ")";
+            os << " (not (counter " << before << " b" << std::to_string(i) << "))";
         os << ")" << std::endl;
 
         os << "    )" << std::endl;
     }
 };
 
-class PopAction : public Action {
+class Pop : public Action {
   protected:
     const int depth_;
 
   public:
-    PopAction(int depth) : Action("Pop"), depth_(depth) { }
-    virtual ~PopAction() { }
-    virtual void dump(std::ostream &os) const {
-        assert(0);
+    Pop(int depth)
+      : Action(std::string("POP_at_d") + std::to_string(depth)),
+        depth_(depth) {
     }
-    virtual void PDDL_dump(std::ostream &os) const {
+    virtual ~Pop() { }
+
+    void dump(std::ostream &os) const override {
+        throw std::runtime_error("error: dump() not implemented for pop() actions");
+    }
+    void PDDL_dump(std::ostream &os) const override {
         assert(depth_ >= 0);
-        std::string d1(std::string("d") + std::to_string(depth_));
-        std::string d2(std::string("d") + std::to_string(depth_ - 1));
-        os << "    (:action " << (std::string("POP_") + d1) << std::endl
-           << "        :parameters (?c - counter)" << std::endl
-           << "        :precondition (and (stack-depth " << d1 << ") (in-stack ?c) (stack-idx ?c " << d1 << "))" << std::endl
-           << "        :effect (and (not (stack-depth " << d1 << ")) (stack-depth " << d2 << ") (not (in-stack ?c)) (not (stack-idx ?c " << d1 << ")))" << std::endl
+        std::string before(std::string("d") + std::to_string(depth_));
+        std::string after(std::string("d") + std::to_string(depth_ - 1));
+        os << "    (:action " << name_ << std::endl
+           << "        :parameters (?X - variable)" << std::endl
+           << "        :precondition (and (stack-depth " << before << ") (stack-index ?X " << before << ") (stack-in ?X))" << std::endl
+           << "        :effect (and (not (stack-depth " << before << ")) (not (stack-index ?X " << before << ")) (not (stack-in ?X)) (stack-depth " << after << "))" << std::endl
            << "    )" << std::endl;
     }
 };
 
-}; // namespace QNP
+class Move : public Action {
+  protected:
+    const int bit_;
+    const int num_bits_in_counter_;
 
-inline std::ostream& operator<<(std::ostream &os, const QNP::Action &action) {
+  public:
+    Move(int bit, int num_bits_in_counter)
+      : Action(std::string("MOVE_b") + std::to_string(bit)),
+        bit_(bit),
+        num_bits_in_counter_(num_bits_in_counter) {
+    }
+    virtual ~Move() { }
+
+    void dump(std::ostream &os) const override {
+        throw std::runtime_error("error: dump() not implemented for pop() actions");
+    }
+    void PDDL_dump(std::ostream &os) const override {
+        std::string bit(std::string("b") + std::to_string(bit_));
+
+        os << "    (:action " << name_ << std::endl;
+
+        os << "        :precondition (and (stack-depth d0)";
+        os << " (not (top-counter " << bit << "))";
+        for( int i = bit_ - 1; i >= 0; --i )
+            os << " (top-counter b" << std::to_string(i) << ")";
+        os << ")" << std::endl;
+
+        os << "        :effect (and (top-counter " << bit << ")";
+        for( int i = bit_ - 1; i >= 0; --i )
+            os << " (not (top-counter b" << std::to_string(i) << "))";
+        os << ")" << std::endl;
+
+        os << "    )" << std::endl;
+    }
+};
+
+}; // namespace Reductions
+
+inline std::ostream& operator<<(std::ostream &os, const Reductions::Action &action) {
     action.dump(os);
     return os;
 }

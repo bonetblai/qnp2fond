@@ -5,13 +5,13 @@
 #include <string>
 #include "basic.h"
 
-namespace QNP {
+namespace Reductions {
 
 class Feature {
   protected:
     const std::string name_;
-    bool numeric_;
-    bool sanitized_;
+    const bool numeric_;
+    const bool sanitized_;
 
   public:
     Feature(const std::string &name, bool numeric, bool sanitized = false)
@@ -21,11 +21,12 @@ class Feature {
     const std::string PDDL_name(bool neg = false) const {
         std::string name;
         if( neg ) name += "(not ";
-        name += sanitized_ ? name_ : std::string("(") + QNP::PDDL_name(name_) + ")";
+        name += sanitized_ ? name_ : std::string("(") + Reductions::PDDL_name(name_) + ")";
         if( neg ) name += ")";
         return name;
     }
-    bool numeric() const { return numeric_; }
+    bool is_numeric() const { return numeric_; }
+    bool is_boolean() const { return !is_numeric(); }
     static Feature* read(std::istream &is) {
         std::string name;
         bool numeric;
@@ -37,9 +38,9 @@ class Feature {
     }
 };
 
-}; // namespace QNP
+}; // namespace Reductions
 
-inline std::ostream& operator<<(std::ostream &os, const QNP::Feature &feature) {
+inline std::ostream& operator<<(std::ostream &os, const Reductions::Feature &feature) {
     feature.dump(os);
     return os;
 }
