@@ -195,24 +195,20 @@ class Push : public Action {
         throw std::runtime_error("error: dump() not implemented for push() actions");
     }
     void PDDL_dump(std::ostream &os) const override {
-        std::string before(std::string("d") + std::to_string(depth_));
-        std::string after(std::string("d") + std::to_string(1 + depth_));
-        std::string bit(std::string("b") + std::to_string(bit_));
-
         os << "    (:action " << name_ << std::endl
-           << "        :parameters (?X - variable)" << std::endl;
-
-        os << "        :precondition (and (stack-depth " << before << ")";
+           << "        :parameters (?X - variable)" << std::endl
+           << "        :precondition (and (stack-depth d" << depth_ << ")";
         if( depth_ > 0 ) os << " (not (stack-in ?X))";
-        os << " (not (counter " << before << " " << bit << "))";
-        for( int i = bit_ - 1; i >= 0; --i )
-            os << " (counter " << before << " b" << std::to_string(i) << ")";
-        os << ")" << std::endl;
+        for( int i = 0; i < bit_; ++i )
+            os << " (counter d" << depth_ << " b" << i << ")";
+        os << " (not (counter d" << depth_ << " b" << bit_ << "))"
+           << ")" << std::endl;
 
-        os << "        :effect (and (not (stack-depth " << before << ")) (stack-depth " << after << ") (stack-in ?X) (stack-index ?X " << after << ") (counter " << before << " " << bit << ")";
-        for( int i = bit_ - 1; i >= 0; --i )
-            os << " (not (counter " << before << " b" << std::to_string(i) << "))";
-        os << ")" << std::endl;
+        os << "        :effect (and (not (stack-depth d" << depth_ << ")) (stack-depth d" << 1 + depth_ << ") (stack-in ?X) (stack-index ?X d" << 1 + depth_ << ")";
+        for( int i = 0; i < bit_; ++i )
+            os << " (not (counter d" << depth_ << " b" << i << "))";
+        os << " (counter d" << depth_ << " b" << bit_ << ")"
+           << ")" << std::endl;
 
         os << "    )" << std::endl;
     }
@@ -234,12 +230,10 @@ class Pop : public Action {
     }
     void PDDL_dump(std::ostream &os) const override {
         assert(depth_ >= 0);
-        std::string before(std::string("d") + std::to_string(depth_));
-        std::string after(std::string("d") + std::to_string(depth_ - 1));
         os << "    (:action " << name_ << std::endl
            << "        :parameters (?X - variable)" << std::endl
-           << "        :precondition (and (stack-depth " << before << ") (stack-index ?X " << before << ") (stack-in ?X))" << std::endl
-           << "        :effect (and (not (stack-depth " << before << ")) (not (stack-index ?X " << before << ")) (not (stack-in ?X)) (stack-depth " << after << "))" << std::endl
+           << "        :precondition (and (stack-depth d" << depth_ << ") (stack-index ?X d" << depth_ << ") (stack-in ?X))" << std::endl
+           << "        :effect (and (not (stack-depth d" << depth_ << ")) (not (stack-index ?X d" << depth_ << ")) (not (stack-in ?X)) (stack-depth d" << 1 + depth_ << "))" << std::endl
            << "    )" << std::endl;
     }
 };
@@ -261,20 +255,18 @@ class Move : public Action {
         throw std::runtime_error("error: dump() not implemented for pop() actions");
     }
     void PDDL_dump(std::ostream &os) const override {
-        std::string bit(std::string("b") + std::to_string(bit_));
+        os << "    (:action " << name_ << std::endl
+           << "        :precondition (and (stack-depth d0)";
+        for( int i = 0; i < bit_; ++i )
+            os << " (top-counter b" << i << ")";
+        os << " (not (top-counter b" << bit_ << "))"
+           << ")" << std::endl;
 
-        os << "    (:action " << name_ << std::endl;
-
-        os << "        :precondition (and (stack-depth d0)";
-        os << " (not (top-counter " << bit << "))";
-        for( int i = bit_ - 1; i >= 0; --i )
-            os << " (top-counter b" << std::to_string(i) << ")";
-        os << ")" << std::endl;
-
-        os << "        :effect (and (top-counter " << bit << ")";
-        for( int i = bit_ - 1; i >= 0; --i )
-            os << " (not (top-counter b" << std::to_string(i) << "))";
-        os << ")" << std::endl;
+        os << "        :effect (and";
+        for( int i = 0; i < bit_; ++i )
+            os << " (not (top-counter b" << i << "))";
+        os << " (top-counter " << bit_ << ")"
+           << ")" << std::endl;
 
         os << "    )" << std::endl;
     }

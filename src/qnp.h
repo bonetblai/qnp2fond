@@ -21,7 +21,7 @@ class QNP : public Problem {
         return qnp;
     }
 
-    void PDDL_dump_domain(std::ostream &os, int num_bits_per_counter, int max_stack_depth) const override {
+    void PDDL_dump_domain(std::ostream &os) const override {
         throw std::runtime_error("error: PDDL dump for QNPs isn't supported.");
     }
     void PDDL_dump_problem(std::ostream &os) const override {

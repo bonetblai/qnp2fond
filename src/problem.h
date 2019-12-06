@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <map>
 #include <vector>
@@ -19,10 +20,30 @@ namespace Translations {
   class Translation;
 };
 
+struct Predicate {
+    const std::string name_;
+    std::vector<std::pair<std::string, std::string> > args_;
+    Predicate(const std::string &name) : name_(name) { }
+    Predicate(const std::string &name, const std::vector<std::pair<std::string, std::string> > args) : name_(name), args_(args) { }
+    std::string str() const {
+        std::stringstream ss;
+        ss << "(" << name_;
+        for( size_t i = 0; i < args_.size(); ++i )
+            ss << " " << args_.at(i).first << " - " << args_.at(i).second;
+        ss << ")";
+        return ss.str();
+    }
+};
+
 // abstract class, instantiated as a QNP or FOND
 class Problem {
   protected:
     const std::string name_;
+
+    // types, constants, and predicates
+    std::vector<std::string> types_;
+    std::vector<std::pair<std::string, std::vector<std::string> > > constants_;
+    std::vector<const Predicate*> predicates_;
 
     // features, either boolean or numeric
     std::vector<const Feature*> features_;
@@ -52,6 +73,42 @@ class Problem {
 
     const std::string& name() const { return name_; }
     bool meta_info_increments() const { return meta_info_increments_; }
+
+    // types
+    int num_types() const {
+        return types_.size();
+    }
+    const std::string& type(int i) const {
+        return types_.at(i);
+    }
+    void add_type(const std::string &name) {
+        types_.push_back(name);
+    }
+
+    // constants
+    int num_constants() const {
+        return constants_.size();
+    }
+    const std::pair<std::string, std::vector<std::string> >& constant(int i) const {
+        return constants_.at(i);
+    }
+    void add_constants(const std::string &type, const std::vector<std::string> &items) {
+        constants_.emplace_back(type, items);
+    }
+
+    // predicates
+    int num_predicates() const {
+        return predicates_.size();
+    }
+    const Predicate& predicate(int i) const {
+        return *predicates_.at(i);
+    }
+    void add_predicate(const std::string &name) {
+        predicates_.push_back(new Predicate(name));
+    }
+    void add_predicate(const std::string &name, const std::vector<std::pair<std::string, std::string> > &args) {
+        predicates_.push_back(new Predicate(name, args));
+    }
 
     // features
     int num_features() const {
@@ -165,7 +222,6 @@ class Problem {
         }
 
         // actions
-
         int num_actions;
         is >> num_actions;
         p.meta_info_increments_ = false;
@@ -202,38 +258,32 @@ class Problem {
     }
 
     // PDDL output
-    virtual void PDDL_dump_domain(std::ostream &os, int num_bits_per_counter, int max_stack_depth) const {
+    virtual void PDDL_dump_domain(std::ostream &os) const {
         os << "(define (domain " << PDDL_name(name_) << ")" << std::endl
-           << "    (:requirements :non-deterministic)" << std::endl
-           << "    (:types variable depth bit)" << std::endl;
+           << "    (:requirements :non-deterministic)" << std::endl;
+
+        // types
+        os << "    (:types";
+        for( size_t i = 0; i < types_.size(); ++i )
+            os << " " << types_.at(i);
+        os << ")" << std::endl;
 
         // constants
         os << "    (:constants";
-        for( size_t i = 0; i < features_.size(); ++i ) {
-            if( features_[i]->is_numeric() )
-                os << " " << PDDL_name(features_[i]->name());
+        for( size_t i = 0; i < constants_.size(); ++i ) {
+            const std::string &type = constants_.at(i).first;
+            const std::vector<std::string> &items = constants_.at(i).second;
+            for( size_t j = 0; j < items.size(); ++j )
+                os << " " << items.at(j);
+            os << " - " << type;
         }
-        os << " - variable";
-
-        for( int d = 0; d <= max_stack_depth; ++d )
-            os << " d" << d;
-        os << " - depth";
-
-        for( int b = 0; b < num_bits_per_counter; ++b )
-            os << " b" << b;
-        os << " - bit)" << std::endl;
+        os << ")" << std::endl;
 
         // predicates
-        os << "    (:predicates" << std::endl
-           << "        (zero ?X - variable)" << std::endl
-           << "        (stack-depth ?d - depth)" << std::endl
-           << "        (stack-index ?X - variable ?d - depth)" << std::endl
-           << "        (stack-in ?X - variable)" << std::endl
-           << "        (counter ?d - depth ?b - bit)" << std::endl;
-
-        for( size_t i = 0; i < boolean_features_.size(); ++i ) {
-            const Feature *feature = boolean_features_.at(i);
-            os << "        " << feature->PDDL_name() << std::endl;
+        os << "    (:predicates" << std::endl;
+        for( size_t i = 0; i < predicates_.size(); ++i ) {
+            const Predicate &pred = predicate(i);
+            os << "        " << pred.str() << std::endl;
         }
         os << "    )" << std::endl;
 

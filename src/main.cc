@@ -6,21 +6,57 @@
 
 using namespace std;
 
-bool direct_translation(const Reductions::QNP &qnp) {
+bool use_direct_translation(const Reductions::QNP &qnp) {
     return !qnp.meta_info_increments();
 }
 
-int main(int argc, const char **argv) {
-    if( argc < 5 ) {
-        cout << "usage: " << *argv << " <qnp-file> <num-bits-per-counter> <max-stack-depth> <prefix>" << endl;
-        exit(0);
-    }
-    string qnp_fname = argv[1];
-    int num_bits_per_counter = atoi(argv[2]);
-    int max_stack_depth = atoi(argv[3]);
-    string prefix = argv[4];
+void usage(ostream &os, const string &name) {
+    os << "usage: " << name << " [--force-direct] [--disable-special-cases] <qnp-file> <num-bits-per-counter> <max-stack-depth> <prefix>" << endl;
+}
 
-    // QNP
+void insufficient_arguments(ostream &os, const string &name) {
+    os << Utils::error() << "insufficient arguments" << endl;
+    usage(os, name);
+    exit(0);
+}
+
+int main(int argc, const char **argv) {
+    // print call
+    const string call_str(Utils::cmdline(argc, argv));
+    cout << "call: " << call_str << endl;
+
+    // read executable name
+    string executable_name(*argv);
+
+    // read options
+    bool opt_force_direct = false;
+    bool opt_disable_special_cases = false;
+    for( ++argv, --argc; (argc > 0) && (**argv == '-'); ++argv, --argc ) {
+        if( string(*argv) == "--force-direct" ) {
+            opt_force_direct = true;
+        } else if( string(*argv) == "--disable-special-cases" ) {
+            opt_disable_special_cases = true;
+        }
+    }
+
+    // read arguments
+    if( argc == 0 ) insufficient_arguments(cout, executable_name);
+    string qnp_fname = *argv++;
+    --argc;
+
+    if( argc == 0 ) insufficient_arguments(cout, executable_name);
+    int num_bits_per_counter = atoi(*argv++);
+    --argc;
+
+    if( argc == 0 ) insufficient_arguments(cout, executable_name);
+    int max_stack_depth = atoi(*argv++);
+    --argc;
+
+    if( argc == 0 ) insufficient_arguments(cout, executable_name);
+    string prefix = *argv++;
+    --argc;
+
+    // read QNP
     ifstream ifs(qnp_fname);
     Reductions::QNP *qnp = Reductions::QNP::read(ifs);
     ifs.close();
@@ -42,9 +78,9 @@ int main(int argc, const char **argv) {
         max_stack_depth = 1 + n;
     }
 
-    // translation
+    // select translation type
     Reductions::Translations::Translation *tr = nullptr;
-    if( direct_translation(*qnp) ) {
+    if( opt_force_direct || (!opt_disable_special_cases && use_direct_translation(*qnp)) ) {
         cout << "using direct translation..." << endl;
         tr = new Reductions::Translations::Direct();
     } else {
@@ -52,19 +88,19 @@ int main(int argc, const char **argv) {
         tr = new Reductions::Translations::Full(num_bits_per_counter, max_stack_depth);
     }
 
-    // translate
+    // do translation
     Reductions::FOND *fond = tr->translate(*qnp);
     Reductions::Translations::Statistics stats = tr->stats();
     cout << "translation: time=" << stats.time_in_seconds_ << endl;
     cout << "fond: #features=" << fond->num_features() << ", #actions=" << fond->num_actions() << endl;
     //cout << *fond;
 
-    // PDDL domain
+    // dump PDDL domain
     ofstream ofs_d(prefix + "_d.pddl");
-    fond->PDDL_dump_domain(ofs_d, num_bits_per_counter, max_stack_depth);
+    fond->PDDL_dump_domain(ofs_d);
     ofs_d.close();
 
-    // PDDL problem
+    // dump PDDL problem
     ofstream ofs_p(prefix + "_p.pddl");
     fond->PDDL_dump_problem(ofs_p);
     ofs_p.close();

@@ -175,6 +175,40 @@ class Full : public Translation {
           "_" + std::to_string(max_stack_depth_);
         FOND *fond = new FOND(name);
 
+        // types
+        fond->add_type("variable");
+        fond->add_type("depth");
+        fond->add_type("bit");
+
+        // constants
+        std::vector<std::string> variables;
+        for( int i = 0; i < qnp.num_numeric_features(); ++i ) {
+            const Feature *feature = &qnp.numeric_feature(i);
+            variables.push_back(PDDL_name(feature->name()));
+        }
+        fond->add_constants("variable", variables);
+
+        std::vector<std::string> depths;
+        for( int d = 0; d <= max_stack_depth_; ++d )
+            depths.push_back(std::string("d") + std::to_string(d));
+        fond->add_constants("depth", depths);
+
+        std::vector<std::string> bits;
+        for( int b = 0; b < num_bits_per_counter_; ++b )
+            bits.push_back(std::string("b") + std::to_string(b));
+        fond->add_constants("bit", bits);
+
+        // predicates
+        fond->add_predicate("zero", { { "?X", "variable" } });
+        fond->add_predicate("stack-depth", { { "?d", "depth" } });
+        fond->add_predicate("stack-index", { { "?X", "variable" }, { "?d", "depth" } });
+        fond->add_predicate("stack-in", { { "?X", "variable" } });
+        fond->add_predicate("counter", { { "?d", "depth" }, { "?b", "bit" } });
+        for( int i = 0; i < qnp.num_boolean_features(); ++i ) {
+            const Feature *feature = &qnp.boolean_feature(i);
+            fond->add_predicate(PDDL_name(feature->name()));
+        }
+
         // all features in translation are boolean
         copy_features(qnp, *fond, feature_map_, true);
 
@@ -231,10 +265,9 @@ class Full : public Translation {
     }
 
     // translation for actions
-    Action* translate_qnp_action(const QNP &qnp, const Action &action, FOND &fond) const {
-        Action *clone = nullptr;
+    void translate_qnp_action(const QNP &qnp, const Action &action, FOND &fond) const {
         if( action.decrements().empty() ) {
-            clone = action.direct_translation(feature_map_);
+            Action *clone = action.direct_translation(feature_map_);
 
             // extra preconditions: -in(Y) for each incremented variable Y
             for( size_t i = 0; i < action.increments().size(); ++i ) {
@@ -244,6 +277,8 @@ class Full : public Translation {
                 assert(in_Y != nullptr);
                 clone->add_precondition(in_Y, false);
             }
+
+            fond.add_action(clone);
         } else {
             // generate a(X,d) actions, where X is decremented variable and d is stack depth
             for( size_t i = 0; i < action.decrements().size(); ++i ) {
@@ -254,7 +289,7 @@ class Full : public Translation {
                     std::string name = action.name() +
                       "_f" + std::to_string(i) +
                       "_d" + std::to_string(d);
-                    clone = action.direct_translation(name, feature_map_);
+                    Action *clone = action.direct_translation(name, feature_map_);
 
                     // extra precondition: index(X,d) = var X is at depth d in stack
                     const Feature *index_X_at_d = index(X, d);
@@ -278,18 +313,16 @@ class Full : public Translation {
                             clone->add_effect(counter_bit, false);
                         }
                     }
+
+                    fond.add_action(clone);
                 }
             }
         }
-        assert(clone != nullptr);
-        return clone;
     }
 
     void translate_qnp_actions(const QNP &qnp, FOND &fond) const {
-        for( size_t i = 0; i < qnp.num_actions(); ++i ) {
-            Action *new_action = translate_qnp_action(qnp, qnp.action(i), fond);
-            fond.add_action(new_action);
-        }
+        for( size_t i = 0; i < qnp.num_actions(); ++i )
+            translate_qnp_action(qnp, qnp.action(i), fond);
     }
     void add_translation_actions(const QNP &qnp, FOND &fond) const {
         create_push_actions(qnp, fond);
