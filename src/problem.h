@@ -57,13 +57,11 @@ class Problem {
     std::vector<const Action*> actions_;
 
     // meta info
-    bool meta_info_increments_;
+    std::set<const Feature*> incremented_features_;
+    std::set<const Feature*> decremented_features_;
 
   public:
-    Problem(const std::string &name)
-      : name_(name),
-        meta_info_increments_(false) {
-    }
+    Problem(const std::string &name) : name_(name) { }
     virtual ~Problem() {
         for( size_t i = 0; i < actions_.size(); ++i )
             delete actions_[i];
@@ -72,7 +70,8 @@ class Problem {
     }
 
     const std::string& name() const { return name_; }
-    bool meta_info_increments() const { return meta_info_increments_; }
+    const std::set<const Feature*>& incremented_features() const { return incremented_features_; }
+    const std::set<const Feature*>& decremented_features() const { return decremented_features_; }
 
     // types
     int num_types() const {
@@ -224,11 +223,11 @@ class Problem {
         // actions
         int num_actions;
         is >> num_actions;
-        p.meta_info_increments_ = false;
         for( int i = 0; i < num_actions; ++i ) {
             Action *action = Action::read(is, p.feature_map());
             p.add_action(action);
-            p.meta_info_increments_ = p.meta_info_increments_ || !action->increments().empty();
+            p.incremented_features_.insert(action->increments().begin(), action->increments().end());
+            p.decremented_features_.insert(action->decrements().begin(), action->decrements().end());
         }
     }
 

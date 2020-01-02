@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <map>
+#include <set>
 #include <vector>
 #include "basic.h"
 #include "feature.h"
@@ -15,8 +16,8 @@ class Action {
     const std::string name_;
     std::vector<std::pair<const Feature*, bool> > preconditions_;
     std::vector<std::pair<const Feature*, bool> > effects_;
-    std::vector<const Feature*> increments_;
-    std::vector<const Feature*> decrements_;
+    std::set<const Feature*> increments_;
+    std::set<const Feature*> decrements_;
 
   public:
     Action(const std::string &name) : name_(name) { }
@@ -47,16 +48,16 @@ class Action {
     void add_effect(const Feature *feature, bool value) {
         effects_.emplace_back(feature, value);
         if( feature->is_numeric() && value )
-            increments_.push_back(feature);
+            increments_.insert(feature);
         else if( feature->is_numeric() && !value )
-            decrements_.push_back(feature);
+            decrements_.insert(feature);
     }
 
-    // number of incremented / decremented variables
-    const std::vector<const Feature*>& increments() const {
+    // incremented / decremented variables
+    const std::set<const Feature*>& increments() const {
         return increments_;
     }
-    const std::vector<const Feature*>& decrements() const {
+    const std::set<const Feature*>& decrements() const {
         return decrements_;
     }
 

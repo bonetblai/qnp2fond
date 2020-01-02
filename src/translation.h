@@ -19,6 +19,7 @@ struct Statistics {
     int num_actions_;
     int num_features_;
     float time_in_seconds_;
+    std::vector<int> extra_;
     Statistics() : num_actions_(0), num_features_(0), time_in_seconds_(0) { }
 };
 
@@ -107,10 +108,11 @@ class Direct : public Translation {
     }
 };
 
-class Full : public Translation {
+class Complete : public Translation {
   protected:
     const int num_bits_per_counter_;
     const int max_stack_depth_;
+    const bool disable_optimizations_;
 
     // maps features in QNP into (new) features in FOND
     mutable std::map<const Feature*, const Feature*> feature_map_;
@@ -146,11 +148,15 @@ class Full : public Translation {
     }
 
     // methods for translation
+    mutable std::vector<const Action*> push_actions_;
+    mutable std::vector<const Action*> pop_actions_;
+    mutable std::vector<const Action*> move_actions_;
     void create_push_actions(const QNP &qnp, FOND &fond) const {
         for( int d = 0; d < max_stack_depth_; ++d ) {
             for( int bit = 0; bit < num_bits_per_counter_; ++bit ) {
                 Action *a = new Push(d, bit, num_bits_per_counter_);
                 fond.add_action(a);
+                push_actions_.push_back(a);
             }
         }
     }
@@ -158,12 +164,14 @@ class Full : public Translation {
         for( int d = 1; d <= max_stack_depth_; ++d ) {
             Action *a = new Pop(d);
             fond.add_action(a);
+            pop_actions_.push_back(a);
         }
     }
     void create_move_actions(const QNP &qnp, FOND &fond) const {
         for( int bit = 0; bit < num_bits_per_counter_; ++bit ) {
             Action *a = new Move(bit, num_bits_per_counter_);
             fond.add_action(a);
+            move_actions_.push_back(a);
         }
     }
 
@@ -266,12 +274,21 @@ class Full : public Translation {
 
     // translation for actions
     void translate_qnp_action(const QNP &qnp, const Action &action, FOND &fond) const {
-        if( action.decrements().empty() ) {
+        // checks whether there is some decremented variable that is incremented by other action
+        bool trigger = false;
+        for( std::set<const Feature*>::const_iterator it = action.decrements().begin(); !trigger && (it != action.decrements().end()); ++it ) {
+            const Feature *X = *it;
+            assert((X != nullptr) && X->is_numeric());
+            if( !disable_optimizations_ )
+                trigger = qnp.incremented_features().find(X) != qnp.incremented_features().end();
+        }
+
+        if( action.decrements().empty() || trigger ) {
             Action *clone = action.direct_translation(feature_map_);
 
             // extra preconditions: -in(Y) for each incremented variable Y
-            for( size_t i = 0; i < action.increments().size(); ++i ) {
-                const Feature *Y = action.increments().at(i);
+            for( std::set<const Feature*>::const_iterator it = action.increments().begin(); it != action.increments().end(); ++it ) {
+                const Feature *Y = *it;
                 assert((Y != nullptr) && Y->is_numeric());
                 const Feature *in_Y = in(Y);
                 assert(in_Y != nullptr);
@@ -281,8 +298,9 @@ class Full : public Translation {
             fond.add_action(clone);
         } else {
             // generate a(X,d) actions, where X is decremented variable and d is stack depth
-            for( size_t i = 0; i < action.decrements().size(); ++i ) {
-                const Feature *X = action.decrements().at(i);
+            int i = 0;
+            for( std::set<const Feature*>::const_iterator it = action.decrements().begin(); it != action.decrements().end(); ++it, ++i ) {
+                const Feature *X = *it;
                 assert((X != nullptr) && X->is_numeric());
 
                 for( int d = 1; d <= max_stack_depth_; ++d ) {
@@ -297,8 +315,8 @@ class Full : public Translation {
                     clone->add_precondition(index_X_at_d, true);
 
                     // extra preconditions: -in(Y) for each incremented variable Y
-                    for( size_t i = 0; i < action.increments().size(); ++i ) {
-                        const Feature *Y = action.increments().at(i);
+                    for( std::set<const Feature*>::const_iterator jt = action.increments().begin(); jt != action.increments().end(); ++jt ) {
+                        const Feature *Y = *jt;
                         assert((Y != nullptr) && Y->is_numeric());
                         const Feature *in_Y = in(Y);
                         assert(in_Y != nullptr);
@@ -331,7 +349,7 @@ class Full : public Translation {
         translate_qnp_actions(qnp, fond);
     }
 
-    FOND* full_translation(const QNP &qnp) const {
+    FOND* complete_translation(const QNP &qnp) const {
         float start_time = Utils::read_time_in_seconds();
         FOND *fond = create_base(qnp);
         add_translation_actions(qnp, *fond);
@@ -340,19 +358,28 @@ class Full : public Translation {
         stats_.num_actions_ = fond->num_actions();
         stats_.num_features_ = fond->num_features();
         stats_.time_in_seconds_ = end_time - start_time;
+        stats_.extra_ = { num_stack_features(), num_counter_features(), int(push_actions_.size()), int(pop_actions_.size()), int(move_actions_.size()) };
         return fond;
     }
 
   public:
-    Full(int num_bits_per_counter, int max_stack_depth)
-      : Translation("full"),
+    Complete(int num_bits_per_counter, int max_stack_depth, bool disable_optimizations)
+      : Translation("complete"),
         num_bits_per_counter_(num_bits_per_counter),
-        max_stack_depth_(max_stack_depth) {
+        max_stack_depth_(max_stack_depth),
+        disable_optimizations_(disable_optimizations) {
     }
-    virtual ~Full() { }
+    virtual ~Complete() { }
 
     FOND* translate(const QNP &qnp) const override {
-        return full_translation(qnp);
+        return complete_translation(qnp);
+    }
+
+    int num_stack_features() const {
+        return stack_in_features_.size() + stack_depth_features_.size() + stack_index_features_.size();
+    }
+    int num_counter_features() const {
+        return counter_features_.size();
     }
 };
 

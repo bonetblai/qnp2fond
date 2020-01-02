@@ -7,11 +7,11 @@
 using namespace std;
 
 bool use_direct_translation(const Reductions::QNP &qnp) {
-    return !qnp.meta_info_increments();
+    return qnp.incremented_features().empty();
 }
 
 void usage(ostream &os, const string &name) {
-    os << "usage: " << name << " [--force-direct] [--disable-special-cases] <qnp-file> <num-bits-per-counter> <max-stack-depth> <prefix>" << endl;
+    os << "usage: " << name << " [--force-direct] [--disable-optimizations] <qnp-file> <num-bits-per-counter> <max-stack-depth> <prefix>" << endl;
 }
 
 void insufficient_arguments(ostream &os, const string &name) {
@@ -30,12 +30,12 @@ int main(int argc, const char **argv) {
 
     // read options
     bool opt_force_direct = false;
-    bool opt_disable_special_cases = false;
+    bool opt_disable_optimizations = false;
     for( ++argv, --argc; (argc > 0) && (**argv == '-'); ++argv, --argc ) {
         if( string(*argv) == "--force-direct" ) {
             opt_force_direct = true;
-        } else if( string(*argv) == "--disable-special-cases" ) {
-            opt_disable_special_cases = true;
+        } else if( string(*argv) == "--disable-optimizations" ) {
+            opt_disable_optimizations = true;
         }
     }
 
@@ -80,18 +80,22 @@ int main(int argc, const char **argv) {
 
     // select translation type
     Reductions::Translations::Translation *tr = nullptr;
-    if( opt_force_direct || (!opt_disable_special_cases && use_direct_translation(*qnp)) ) {
+    if( opt_force_direct || (!opt_disable_optimizations && use_direct_translation(*qnp)) ) {
         cout << "using direct translation..." << endl;
         tr = new Reductions::Translations::Direct();
     } else {
         cout << "using full translation..." << endl;
-        tr = new Reductions::Translations::Full(num_bits_per_counter, max_stack_depth);
+        tr = new Reductions::Translations::Complete(num_bits_per_counter, max_stack_depth, opt_disable_optimizations);
     }
 
     // do translation
     Reductions::FOND *fond = tr->translate(*qnp);
     Reductions::Translations::Statistics stats = tr->stats();
     cout << "translation: time=" << stats.time_in_seconds_ << endl;
+    cout << "translation: stats.extra=[";
+    for( size_t i = 0; i < stats.extra_.size(); ++i )
+        cout << " " << stats.extra_.at(i);
+    cout << " ]" << endl;
     cout << "fond: #features=" << fond->num_features() << ", #actions=" << fond->num_actions() << endl;
     //cout << *fond;
 
@@ -106,6 +110,7 @@ int main(int argc, const char **argv) {
     ofs_p.close();
 
     delete fond;
+    delete tr;
     delete qnp;
     return 0;
 }
