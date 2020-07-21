@@ -63,6 +63,9 @@ int main(int argc, const char **argv) {
             --argc;
             if( argc == 0 ) insufficient_arguments(cout, executable_name);
             stack_depth = atoi(*argv);
+        } else {
+            cout << Utils::error() << "unreconized option '" << *argv << "'" << endl;
+            exit(-1);
         }
     }
 
