@@ -11,6 +11,11 @@ and the second argument is the prefix for the generated files
 (PDDL domain and problem files). A number of options is supported 
 that can be inspected with ``qnp2fond --help``.
 
+The source code of ``qnp2fond`` is in the folder ``src`` together with a makefile for building it.
+The program is simple and there should be no issues when compiling it. Some examples can be
+found in ``examples``, the examples used in the paper about QNPs are in ``examples/qnp-paper``.
+Other examples are included in ``examples/other``.
+
 
 ## QNP Format
 
