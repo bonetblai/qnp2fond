@@ -8,7 +8,8 @@ qnp2fond <qnp-file> <prefix>
 
 where the first argument is the name of a .qnp file (see below)
 and the second argument is the prefix for the generated files 
-(PDDL domain and problem files).
+(PDDL domain and problem files). A number of options is supported 
+that can be inspected with ``qnp2fond --help``.
 
 
 ## QNP Format
