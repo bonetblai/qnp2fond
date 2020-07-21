@@ -11,7 +11,7 @@ bool use_direct_translation(const Reductions::QNP &qnp) {
 }
 
 void usage(ostream &os, const string &name) {
-    os << "usage: " << name << " [--force-direct] [--disable-optimizations] <qnp-file> <num-bits-per-counter> <max-stack-depth> <prefix>" << endl;
+    os << "usage: " << name << " [--bits-per-counter <n>] [--disable-optimizations] [--force-direct] [--stack-depth <m>] <qnp-file> <num-bits-per-counter> <max-stack-depth> <prefix>" << endl;
 }
 
 void insufficient_arguments(ostream &os, const string &name) {
