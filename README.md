@@ -16,6 +16,13 @@ The program is simple and there should be no issues when compiling it. Some exam
 found in ``examples``, the examples used in the paper about QNPs are in ``examples/qnp-paper``.
 Other examples are included in ``examples/other``.
 
+Feel free to use the translator and let us know of any bug or comment.
+We are interested in applications for QNPs.
+
+To reference the translator and QNPs, you can use:
+
+- Blai Bonet and Hector Geffner. *Qualitative Numeric Planning: Reductions and Complexity*. Journal of Artificial Intelligence Research (JAIR). Forthcoming. 2020.
+
 
 ## QNP Format
 
