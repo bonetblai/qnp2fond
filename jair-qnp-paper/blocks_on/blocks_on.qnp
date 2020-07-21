@@ -1,0 +1,23 @@
+blocks-on
+5 n 1 m 1 empty 0 holding-x 0 goal 0
+5 empty 1 holding-x 0 goal 0 n 1 m 1
+1 goal 1
+6
+Pick-x
+2 empty 1 n 0
+2 empty 0 holding-x 1
+Pick-above-x
+2 empty 1 n 1
+2 empty 0 n 0
+Pick-above-y
+2 empty 1 m 1
+2 empty 0 m 0
+Put-aside
+2 empty 0 holding-x 0
+1 empty 1
+Put-x-aside
+2 empty 0 holding-x 1
+2 empty 1 holding-x 0
+Put-x-on-y
+3 empty 0 holding-x 1 m 0
+4 empty 1 holding-x 0 goal 1 m 1

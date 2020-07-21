@@ -1,0 +1,17 @@
+blocks-clear
+2 n 1 holding 0
+2 n 1 holding 0
+1 n 0
+4
+Putaway
+1 holding 1
+1 holding 0
+Pick-above-x
+2 n 1 holding 0
+2 n 0 holding 1
+Put-above-x
+1 holding 1
+2 n 1 holding 0
+Pick-other
+1 holding 0
+1 holding 1

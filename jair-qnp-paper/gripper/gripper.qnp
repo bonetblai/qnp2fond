@@ -1,0 +1,20 @@
+gripper
+4 balls-at-source 1 carrying 1 free-grippers 1 at-target 0
+4 at-target 1 balls-at-source 1 carrying 0 free-grippers 1
+2 balls-at-source 0 carrying 0
+5
+Drop-at-source
+2 at-target 0 carrying 1
+3 carrying 0 free-grippers 1 balls-at-source 1
+Drop-at-target
+2 at-target 1 carrying 1
+2 carrying 0 free-grippers 1
+Pick-at-source
+3 at-target 0 balls-at-source 1 free-grippers 1
+3 balls-at-source 0 free-grippers 0 carrying 1
+Move-to-target
+1 at-target 0
+1 at-target 1
+Move-back
+1 at-target 1
+1 at-target 0

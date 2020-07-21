@@ -1,0 +1,17 @@
+syntethic2
+4 X 1 Y 1 p 0 goal 0
+4 X 1 Y 1 p 1 goal 0
+1 goal 1
+4
+act-a
+2 X 1 p 1
+2 X 0 p 0
+act-b
+1 p 0
+2 p 1 X 1
+goal1
+1 X 0
+1 goal 1
+goal2
+1 Y 0
+1 goal 1
