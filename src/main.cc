@@ -11,11 +11,23 @@ bool use_direct_translation(const Reductions::QNP &qnp) {
 }
 
 void usage(ostream &os, const string &name) {
-    os << "usage: " << name << " [--bits-per-counter <n>] [--disable-optimizations] [--force-direct] [--stack-depth <m>] <qnp-file> <num-bits-per-counter> <max-stack-depth> <prefix>" << endl;
+    os << "usage: " << name << " [--bits-per-counter <n>] [--disable-optimizations] [--force-direct] [--help] [--stack-depth <m>] <qnp-file> <prefix>" << endl
+       << endl
+       << "where <qnp-file> is path to file containing qnp to be translated and <prefix> is used" << endl
+       << "to form the names of generated files. The default value for number of bits per counter" <<endl
+       << "is the number of variables in the problem, and for the stack depth is the number of" << endl
+       << "numerical variables in the problem. For the options:" << endl
+       << endl
+       << "    --bits-per-counter <n>     to override with <n> the default value for number of bits per counter" << endl
+       << "    --disable-optimizations    to disable all optimizations and use the full translation" << endl
+       << "    --force-direct             to do a direct translation (most probably incorrect)" << endl
+       << "    --help                     to print this help and exit" << endl
+       << "    --stack-depth <m>          to override with <m> the default value for stack depth" << endl
+       << endl;
 }
 
 void insufficient_arguments(ostream &os, const string &name) {
-    os << Utils::error() << "insufficient arguments" << endl;
+    os << Utils::error() << "insufficient arguments" << endl << endl;
     usage(os, name);
     exit(0);
 }
@@ -29,27 +41,34 @@ int main(int argc, const char **argv) {
     string executable_name(*argv);
 
     // read options
+    int stack_depth = -1;
+    int num_bits_per_counter = -1;
     bool opt_force_direct = false;
     bool opt_disable_optimizations = false;
     for( ++argv, --argc; (argc > 0) && (**argv == '-'); ++argv, --argc ) {
-        if( string(*argv) == "--force-direct" ) {
-            opt_force_direct = true;
+        if( string(*argv) == "--bits-per-counter" ) {
+            ++argv;
+            --argc;
+            if( argc == 0 ) insufficient_arguments(cout, executable_name);
+            num_bits_per_counter = atoi(*argv);
         } else if( string(*argv) == "--disable-optimizations" ) {
             opt_disable_optimizations = true;
+        } else if( string(*argv) == "--force-direct" ) {
+            opt_force_direct = true;
+        } else if( string(*argv) == "--help" ) {
+            usage(cout, executable_name);
+            exit(0);
+        } else if( string(*argv) == "--stack-depth" ) {
+            ++argv;
+            --argc;
+            if( argc == 0 ) insufficient_arguments(cout, executable_name);
+            stack_depth = atoi(*argv);
         }
     }
 
     // read arguments
     if( argc == 0 ) insufficient_arguments(cout, executable_name);
     string qnp_fname = *argv++;
-    --argc;
-
-    if( argc == 0 ) insufficient_arguments(cout, executable_name);
-    int num_bits_per_counter = atoi(*argv++);
-    --argc;
-
-    if( argc == 0 ) insufficient_arguments(cout, executable_name);
-    int max_stack_depth = atoi(*argv++);
     --argc;
 
     if( argc == 0 ) insufficient_arguments(cout, executable_name);
@@ -74,14 +93,13 @@ int main(int argc, const char **argv) {
     //cout << *qnp;
 
     // set values for translation parameters
-    int n = qnp->num_features();
-    if( num_bits_per_counter <= 0 ) {
-        cout << "info: <num-bits-per-counter> set to " << 1 + n << endl;
-        num_bits_per_counter = 1 + n;
+    if( num_bits_per_counter < 0 ) {
+        num_bits_per_counter = 1 + qnp->num_features();
+        cout << "info: num-bits-per-counter set to " << num_bits_per_counter << endl;
     }
-    if( max_stack_depth <= 0 ) {
-        cout << "info: <max-stack-depth> set to " << 1 + n << endl;
-        max_stack_depth = 1 + n;
+    if( stack_depth <= 0 ) {
+        stack_depth = 1 + qnp->num_numeric_features();
+        cout << "info: stack-depth set to " << stack_depth << endl;
     }
 
     // select translation type
@@ -91,7 +109,7 @@ int main(int argc, const char **argv) {
         tr = new Reductions::Translations::Direct();
     } else {
         cout << "using full translation..." << endl;
-        tr = new Reductions::Translations::Complete(num_bits_per_counter, max_stack_depth, opt_disable_optimizations);
+        tr = new Reductions::Translations::Complete(num_bits_per_counter, stack_depth, opt_disable_optimizations);
     }
 
     // do translation
