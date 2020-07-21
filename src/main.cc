@@ -58,8 +58,14 @@ int main(int argc, const char **argv) {
 
     // read QNP
     ifstream ifs(qnp_fname);
+    if( ifs.fail() ) {
+        cout << "error: cannot open " << qnp_fname << endl;
+        exit(0);
+    }
     Reductions::QNP *qnp = Reductions::QNP::read(ifs);
     ifs.close();
+
+    if( !qnp->check(cout) ) exit(0);
     cout << "qnp: #features=" << qnp->num_features()
          << ", #numeric=" << qnp->num_numeric_features()
          << ", #boolean=" << qnp->num_boolean_features()
@@ -92,7 +98,7 @@ int main(int argc, const char **argv) {
     Reductions::FOND *fond = tr->translate(*qnp);
     Reductions::Translations::Statistics stats = tr->stats();
     cout << "translation: time=" << stats.time_in_seconds_ << endl;
-    cout << "translation: stats.extra=[";
+    cout << "translation: stats.extra(#stack-features,#counter-features,#push-actions,#pop-actions,#move-actions)=[";
     for( size_t i = 0; i < stats.extra_.size(); ++i )
         cout << " " << stats.extra_.at(i);
     cout << " ]" << endl;

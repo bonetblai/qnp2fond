@@ -134,6 +134,24 @@ class Problem {
         feature_map_.insert(std::make_pair(feature->name(), features_.back()));
     }
 
+    bool is_numeric_feature(const Feature *f) const {
+        for( size_t i = 0; i < numeric_features_.size(); ++i ) {
+            if( numeric_features_[i] == f )
+                return true;
+        }
+        return false;
+    }
+    bool is_boolean_feature(const Feature *f) const {
+        for( size_t i = 0; i < boolean_features_.size(); ++i ) {
+            if( boolean_features_[i] == f )
+                return true;
+        }
+        return false;
+    }
+    bool is_feature(const Feature *f) const {
+        return is_numeric_feature(f) || is_boolean_feature(f);
+    }
+
     // numerical and boolean features
     int num_numeric_features() const {
         return numeric_features_.size();

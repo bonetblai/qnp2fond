@@ -70,8 +70,25 @@ class Translation {
 
     virtual FOND* translate(const QNP &qnp) const = 0;
 
+    void add_base(const QNP &qnp, FOND *fond) const {
+        // types
+        fond->add_type("variable");
+
+        // constants
+        std::vector<std::string> variables;
+        for( int i = 0; i < qnp.num_numeric_features(); ++i ) {
+            const Feature *feature = &qnp.numeric_feature(i);
+            variables.push_back(PDDL_name(feature->name()));
+        }
+        fond->add_constants("variable", variables);
+
+        // predicates
+        fond->add_predicate("zero", { { "?X", "variable" } });
+    }
+
     FOND* direct_translation(const QNP &qnp) const {
         FOND *fond = new FOND(std::string("FOND_direct_") + name_);
+	add_base(qnp, fond);
 
         // all features in direct translation are boolean
         std::map<const Feature*, const Feature*> feature_map;
@@ -275,15 +292,14 @@ class Complete : public Translation {
     // translation for actions
     void translate_qnp_action(const QNP &qnp, const Action &action, FOND &fond) const {
         // checks whether there is some decremented variable that is incremented by other action
-        bool trigger = false;
-        for( std::set<const Feature*>::const_iterator it = action.decrements().begin(); !trigger && (it != action.decrements().end()); ++it ) {
+        bool dec_var_that_is_incremented_by_other_action = false;
+        for( std::set<const Feature*>::const_iterator it = action.decrements().begin(); !dec_var_that_is_incremented_by_other_action && (it != action.decrements().end()); ++it ) {
             const Feature *X = *it;
             assert((X != nullptr) && X->is_numeric());
-            if( !disable_optimizations_ )
-                trigger = qnp.incremented_features().find(X) != qnp.incremented_features().end();
+            dec_var_that_is_incremented_by_other_action = qnp.incremented_features().find(X) != qnp.incremented_features().end();
         }
 
-        if( action.decrements().empty() || trigger ) {
+        if( action.decrements().empty() || (!disable_optimizations_ && !dec_var_that_is_incremented_by_other_action) ) {
             Action *clone = action.direct_translation(feature_map_);
 
             // extra preconditions: -in(Y) for each incremented variable Y
@@ -293,6 +309,17 @@ class Complete : public Translation {
                 const Feature *in_Y = in(Y);
                 assert(in_Y != nullptr);
                 clone->add_precondition(in_Y, false);
+            }
+
+	    // extra effects: if some var is decrementad, such var isn't incremented by any action, reset all stack counters
+	    if( !action.decrements().empty() ) {
+                for( int dp = 0; dp <= max_stack_depth_; ++dp ) {
+                    // reset c(dp)
+                    for( int bit = 0; bit < num_bits_per_counter_; ++bit ) {
+                        const Feature *counter_bit = counter(dp, bit);
+                        clone->add_effect(counter_bit, false);
+                    }
+		}
             }
 
             fond.add_action(clone);

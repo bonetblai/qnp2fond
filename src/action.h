@@ -27,6 +27,16 @@ class Action {
         return name_;
     }
 
+    bool check(std::ostream &os) const {
+        for( std::set<const Feature*>::const_iterator it = decrements_.begin(); it != decrements_.end(); ++it ) {
+            if( !is_precondition(*it, true) ) {
+                os << "error: bad precondition for decremented feature " << (*it)->name() << " in action " << name() << std::endl;
+                return false;
+            }
+        }
+        return true;
+    }
+
     // preconditions
     size_t num_preconditions() const {
         return preconditions_.size();
@@ -36,6 +46,13 @@ class Action {
     }
     void add_precondition(const Feature *feature, bool value) {
         preconditions_.emplace_back(feature, value);
+    }
+    bool is_precondition(const Feature *f, bool value) const {
+        for( size_t i = 0; i < preconditions_.size(); ++i ) {
+            if( preconditions_[i] == std::make_pair(f, value) )
+                return true;
+        }
+        return false;
     }
 
     // effects
@@ -230,11 +247,11 @@ class Pop : public Action {
         throw std::runtime_error("error: dump() not implemented for pop() actions");
     }
     void PDDL_dump(std::ostream &os) const override {
-        assert(depth_ >= 0);
+        assert(depth_ > 0);
         os << "    (:action " << name_ << std::endl
            << "        :parameters (?X - variable)" << std::endl
            << "        :precondition (and (stack-depth d" << depth_ << ") (stack-index ?X d" << depth_ << ") (stack-in ?X))" << std::endl
-           << "        :effect (and (not (stack-depth d" << depth_ << ")) (not (stack-index ?X d" << depth_ << ")) (not (stack-in ?X)) (stack-depth d" << 1 + depth_ << "))" << std::endl
+           << "        :effect (and (not (stack-depth d" << depth_ << ")) (not (stack-index ?X d" << depth_ << ")) (not (stack-in ?X)) (stack-depth d" << depth_ - 1 << "))" << std::endl
            << "    )" << std::endl;
     }
 };
