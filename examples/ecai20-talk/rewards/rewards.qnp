@@ -1,0 +1,11 @@
+rewards
+2 rewards 1 distance 1
+2 rewards 1 distance 1
+1 rewards 0
+2
+Collect
+2 rewards 1 distance 0
+2 rewards 0 distance 1
+Move-to-closest-reward
+2 rewards 1 distance 1
+1 distance 0
