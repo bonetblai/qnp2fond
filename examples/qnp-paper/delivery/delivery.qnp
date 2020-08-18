@@ -4,7 +4,7 @@ delivery
 2 pkgs 0 holding 0
 7
 Move-to-pkg
-1 dist-to-next-pkg 1
+2 dist-to-next-pkg 1 pkgs 1
 2 dist-to-next-pkg 0 dist-to-target 1
 Move-away-from-pkg
 0

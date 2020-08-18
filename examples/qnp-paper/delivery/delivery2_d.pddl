@@ -152,19 +152,19 @@
         :effect (and (not (top-counter b0)) (not (top-counter b1)) (not (top-counter b2)) (not (top-counter b3)) (top-counter 4))
     )
     (:action Move-to-pkg_f0_d1
-        :precondition (and (not (zero dist-to-next-pkg)) (stack-index dist-to-next-pkg d1) (not (stack-in dist-to-target)))
+        :precondition (and (not (zero dist-to-next-pkg)) (not (zero pkgs)) (stack-index dist-to-next-pkg d1) (not (stack-in dist-to-target)))
         :effect (and (oneof (zero dist-to-next-pkg) (not (zero dist-to-next-pkg))) (not (zero dist-to-target)) (not (counter d1 b0)) (not (counter d1 b1)) (not (counter d1 b2)) (not (counter d1 b3)) (not (counter d1 b4)) (not (counter d2 b0)) (not (counter d2 b1)) (not (counter d2 b2)) (not (counter d2 b3)) (not (counter d2 b4)) (not (counter d3 b0)) (not (counter d3 b1)) (not (counter d3 b2)) (not (counter d3 b3)) (not (counter d3 b4)) (not (counter d4 b0)) (not (counter d4 b1)) (not (counter d4 b2)) (not (counter d4 b3)) (not (counter d4 b4)))
     )
     (:action Move-to-pkg_f0_d2
-        :precondition (and (not (zero dist-to-next-pkg)) (stack-index dist-to-next-pkg d2) (not (stack-in dist-to-target)))
+        :precondition (and (not (zero dist-to-next-pkg)) (not (zero pkgs)) (stack-index dist-to-next-pkg d2) (not (stack-in dist-to-target)))
         :effect (and (oneof (zero dist-to-next-pkg) (not (zero dist-to-next-pkg))) (not (zero dist-to-target)) (not (counter d2 b0)) (not (counter d2 b1)) (not (counter d2 b2)) (not (counter d2 b3)) (not (counter d2 b4)) (not (counter d3 b0)) (not (counter d3 b1)) (not (counter d3 b2)) (not (counter d3 b3)) (not (counter d3 b4)) (not (counter d4 b0)) (not (counter d4 b1)) (not (counter d4 b2)) (not (counter d4 b3)) (not (counter d4 b4)))
     )
     (:action Move-to-pkg_f0_d3
-        :precondition (and (not (zero dist-to-next-pkg)) (stack-index dist-to-next-pkg d3) (not (stack-in dist-to-target)))
+        :precondition (and (not (zero dist-to-next-pkg)) (not (zero pkgs)) (stack-index dist-to-next-pkg d3) (not (stack-in dist-to-target)))
         :effect (and (oneof (zero dist-to-next-pkg) (not (zero dist-to-next-pkg))) (not (zero dist-to-target)) (not (counter d3 b0)) (not (counter d3 b1)) (not (counter d3 b2)) (not (counter d3 b3)) (not (counter d3 b4)) (not (counter d4 b0)) (not (counter d4 b1)) (not (counter d4 b2)) (not (counter d4 b3)) (not (counter d4 b4)))
     )
     (:action Move-to-pkg_f0_d4
-        :precondition (and (not (zero dist-to-next-pkg)) (stack-index dist-to-next-pkg d4) (not (stack-in dist-to-target)))
+        :precondition (and (not (zero dist-to-next-pkg)) (not (zero pkgs)) (stack-index dist-to-next-pkg d4) (not (stack-in dist-to-target)))
         :effect (and (oneof (zero dist-to-next-pkg) (not (zero dist-to-next-pkg))) (not (zero dist-to-target)) (not (counter d4 b0)) (not (counter d4 b1)) (not (counter d4 b2)) (not (counter d4 b3)) (not (counter d4 b4)))
     )
     (:action Move-to-target_f0_d1
