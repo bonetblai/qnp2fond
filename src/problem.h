@@ -40,6 +40,9 @@ class Problem {
   protected:
     const std::string name_;
 
+    // names
+    std::set<std::string> registered_names_;
+
     // types, constants, and predicates
     std::vector<std::string> types_;
     std::vector<std::pair<std::string, std::vector<std::string> > > constants_;
@@ -81,6 +84,8 @@ class Problem {
         return types_.at(i);
     }
     void add_type(const std::string &name) {
+        assert(registered_names_.find(name) == registered_names_.end());
+        registered_names_.insert(name);
         types_.push_back(name);
     }
 
@@ -92,6 +97,10 @@ class Problem {
         return constants_.at(i);
     }
     void add_constants(const std::string &type, const std::vector<std::string> &items) {
+        for( size_t i = 0; i < items.size(); ++i ) {
+            assert(registered_names_.find(items[i]) == registered_names_.end());
+            registered_names_.insert(items[i]);
+        }
         constants_.emplace_back(type, items);
     }
 
@@ -103,9 +112,13 @@ class Problem {
         return *predicates_.at(i);
     }
     void add_predicate(const std::string &name) {
+        assert(registered_names_.find(name) == registered_names_.end());
+        registered_names_.insert(name);
         predicates_.push_back(new Predicate(name));
     }
     void add_predicate(const std::string &name, const std::vector<std::pair<std::string, std::string> > &args) {
+        assert(registered_names_.find(name) == registered_names_.end());
+        registered_names_.insert(name);
         predicates_.push_back(new Predicate(name, args));
     }
 
@@ -314,7 +327,9 @@ class Problem {
            << "    (:domain " << PDDL_name(name_) << ")" << std::endl;
 
         // initial situation
-        os << "    (:init (stack-depth d0)";
+        os << "    (:init";
+        if( registered_names_.find("stack-depth") != registered_names_.end() )
+            os << " (stack-depth d0)";
         for( size_t i = 0; i < init_.size(); ++i ) {
             const Feature *feature = init_[i].first;
             int value = init_[i].second;

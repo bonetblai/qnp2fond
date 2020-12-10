@@ -84,6 +84,10 @@ class Translation {
 
         // predicates
         fond->add_predicate("zero", { { "?X", "variable" } });
+        for( int i = 0; i < qnp.num_boolean_features(); ++i ) {
+            const Feature *feature = &qnp.boolean_feature(i);
+            fond->add_predicate(PDDL_name(feature->name()));
+        }
     }
 
     FOND* direct_translation(const QNP &qnp) const {
